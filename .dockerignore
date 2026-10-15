@@ -1,0 +1,10 @@
+.git
+.idea
+__pycache__
+*.py[cod]
+*.egg-info
+node_modules
+odoo/filestore
+.env
+.env.*
+!.env.example
