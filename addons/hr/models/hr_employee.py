@@ -2554,7 +2554,10 @@ class HrEmployee(models.Model):
 
         date_from = fields.Date.to_date(date_from)
         for employee_id, version in self._get_first_contract_version_at(date_from).items():
-            res[employee_id] = version.resource_calendar_id.hours_per_day
+            res[employee_id] = (
+                version.resource_calendar_id.hours_per_day
+                or version._get_reference_calendar(date_from).hours_per_day
+            )
         return res
 
     def _get_version_periods(self, start, stop, field=None, check_contract=False):
@@ -2674,9 +2677,9 @@ class HrEmployee(models.Model):
             check_contract=True,
         )
 
-        work_resources_per_calendar = defaultdict(lambda: self.env['resource.resource'])
-        attendance_resources_per_calendar = defaultdict(lambda: self.env['resource.resource'])
-        leave_resources_per_calendar = defaultdict(lambda: self.env['resource.resource'])
+        work_resources_per_calendar = defaultdict(self.env['resource.resource'].sudo)
+        attendance_resources_per_calendar = defaultdict(self.env['resource.resource'].sudo)
+        leave_resources_per_calendar = defaultdict(self.env['resource.resource'].sudo)
         for employee, calendar_periods in calendar_tz_periods_per_employee.items():
             for period_start, period_stop, (calendar, tz) in calendar_periods:
                 if calendar._is_flexible():
@@ -2938,7 +2941,7 @@ class HrEmployee(models.Model):
         return relativedelta(target_date, self.birthday).years if self.birthday else 0
 
     def _get_versions_with_contract_overlap_with_period(self, date_from, date_to):
-        """Return the versions in effect, and in contract, at least one day of ``[date_from, date_to]``.
+        """Return the active versions in effect, and in contract, at least one day of ``[date_from, date_to]``.
 
         Within a contract, a version is effective from its ``date_version``
         (the first version from the contract start) until the day before the
@@ -2953,6 +2956,7 @@ class HrEmployee(models.Model):
         :rtype: hr.version
         """
         candidate_versions = self.version_ids.filtered_domain([
+            ('active', '=', True),
             ('contract_date_start', '!=', False), ('contract_date_start', '<=', date_to),
             '|', ('contract_date_end', '>=', date_from), ('contract_date_end', '=', False),
         ])
@@ -3143,6 +3147,7 @@ class HrEmployee(models.Model):
         self.action_unarchive()
         version = self._get_version(self.departure_id.departure_date)
         version.contract_date_end = self.departure_id.last_contract_date_end
+        self.departure_id._track_in_employee_chatter(is_cancellation=True)
         self.departure_id.unlink()
 
     def _get_working_periods_by_field(self, start, stop, field_key):
@@ -3214,9 +3219,9 @@ class HrEmployee(models.Model):
         version_changes_to_display = {}
         for field_name in version_changes:
             new_value = version_changes[field_name]
-            field = self.env['ir.model.fields'].search([('model', '=', 'hr.version'), ('name', '=', field_name)])
-            if field['relation']:
-                new_value = self.env[field['relation']].search([('id', 'in', new_value)])
+            field = self.env['hr.version']._fields[field_name]
+            if field.relational:
+                new_value = self.env[field.comodel_name].search([('id', 'in', new_value)])
             tracking_values = self._create_mail_tracking_values(
                 self[field_name], new_value,
                 field_name, self._track_get_fields_info([field_name])[field_name],

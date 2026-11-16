@@ -27,8 +27,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-18 17:38+0000\n"
-"PO-Revision-Date: 2026-10-29 16:26+0000\n"
+"POT-Creation-Date: 2026-11-06 17:38+0000\n"
+"PO-Revision-Date: 2026-11-12 15:30+0000\n"
 "Last-Translator: Hanna Kharraziha <hakha@odoo.com>\n"
 "Language-Team: Swedish <https://translate.odoo.com/projects/odoo-20/crm/sv/>"
 "\n"
@@ -47,7 +47,7 @@ msgstr "# leads/möjligheter denna månad"
 #. module: crm
 #: model:ir.model.fields,field_description:crm.field_crm_recurring_plan__number_of_months
 msgid "# Months"
-msgstr "# månader"
+msgstr "Antal månader"
 
 #. module: crm
 #: model:ir.model.fields,field_description:crm.field_crm_team__lead_unassigned_count
@@ -310,8 +310,8 @@ msgid ""
 "default.\n"
 "                                </span>"
 msgstr ""
-"<span>Tilldela regelbundet leads baserat på prioritet och filter.</span><br/>"
-"\n"
+"<span>Tilldela regelbundet leads baserat på prioritet och filter.</span><br/"
+">\n"
 "                                <span invisible=\"not "
 "crm_use_auto_assignment\">\n"
 "                                    Alla försäljningsteam använder "
@@ -338,21 +338,21 @@ msgstr ""
 msgid ""
 "<t>\n"
 "Hi <t t-out=\"object.partner_id and object.partner_id.name or ''\">Acme "
-"Corporation</t>,<br/><br/>\n"
+"Corporation</t>,<br><br>\n"
 "Welcome to <t t-out=\"object.company_id.name or ''\">My Company (San "
 "Francisco)</t>.\n"
 "It's great to meet you! Now that you're on board, you'll discover what <t t-"
 "out=\"object.company_id.name or ''\">My Company (San Francisco)</t> has to "
 "offer. My name is <t t-out=\"object.user_id.name or ''\">Marc Demo</t> and "
-"I'll help you get the most out of Odoo. Could we plan a quick demo soon?<br/"
-">\n"
-"Feel free to reach out at any time!<br/><br/>\n"
-"Best,<br/>\n"
+"I'll help you get the most out of Odoo. Could we plan a quick demo soon?"
+"<br>\n"
+"Feel free to reach out at any time!<br><br>\n"
+"Best,<br>\n"
 "<t t-if=\"object.user_id\">\n"
 "    <b><t t-out=\"object.user_id.name or ''\">Marc Demo</t></b>\n"
-"    <br/>Email: <t t-out=\"object.user_id.email or "
+"    <br>Email: <t t-out=\"object.user_id.email or "
 "''\">mark.brown23@example.com</t>\n"
-"    <br/>Phone: <t t-out=\"object.user_id.phone or ''\">+1 650-123-4567</t>\n"
+"    <br>Phone: <t t-out=\"object.user_id.phone or ''\">+1 650-123-4567</t>\n"
 "</t>\n"
 "<t t-else=\"\">\n"
 "    <t t-out=\"object.company_id.name or ''\">My Company (San Francisco)</"
@@ -1294,7 +1294,7 @@ msgstr "Ange eventuell intäkt på möjligheten"
 #. module: crm
 #: model_terms:ir.ui.view,arch_db:crm.crm_case_kanban_view_leads
 msgid "Delete"
-msgstr "Ta bort"
+msgstr "Radera"
 
 #. module: crm
 #: model:ir.model.fields,field_description:crm.field_crm_lost_reason__name
@@ -2692,7 +2692,7 @@ msgstr "Ny möjlighet"
 #. module: crm
 #: model:ir.model.fields,field_description:crm.field_crm_lead__activity_calendar_event_id
 msgid "Next Activity Calendar Event"
-msgstr "Nästa kalenderhändelse"
+msgstr "Nästa aktivitetshändelse i kalendern"
 
 #. module: crm
 #: model:ir.model.fields,field_description:crm.field_crm_lead__activity_date_deadline
@@ -2902,7 +2902,7 @@ msgstr "Antal leads som tilldelats denna medlem under de senaste 30 dagarna"
 #. module: crm
 #: model:ir.model.fields,help:crm.field_crm_lead__message_needaction_counter
 msgid "Number of messages requiring action"
-msgstr "Antal meddelanden som kräver åtgärd"
+msgstr "Antal meddelanden som kräver en åtgärd"
 
 #. module: crm
 #: model:ir.model.fields,help:crm.field_crm_lead__message_has_error_counter
@@ -4771,7 +4771,7 @@ msgstr "inkommande e-post"
 #. odoo-python
 #: code:addons/crm/models/crm_lost_reason.py:0
 msgid "lost_reason_id"
-msgstr "förlorad_orsak_id"
+msgstr "lost_reason_id"
 
 #. module: crm
 #. odoo-javascript

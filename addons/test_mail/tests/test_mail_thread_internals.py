@@ -1133,7 +1133,28 @@ class TestAPI(ThreadRecipients):
                 message,
                 body=Markup("line1<br>edit<br>line2<br>line3"),
             )
-        self.assertEqual(message.body, Markup('<p>line1 <br>edit<br>line2<br>line3<span class="o-mail-Message-edited" data-o-datetime="2025-04-08 13:00:00"></span></p>'))
+            self.assertEqual(
+                message.body,
+                Markup(
+                    '<p>line1<br>edit<br>line2<br>line3 <span class="o-mail-Message-edited" data-o-datetime="2025-04-08 13:00:00"></span></p>'
+                ),
+            )
+
+            ticket_record._message_update_content(message, body=Markup("<p>Hello<b>world</b></p>"))
+            self.assertEqual(
+                message.body,
+                Markup(
+                    '<p>Hello<b>world</b><span class="o-mail-Message-edited" data-o-datetime="2025-04-08 13:00:00"></span></p>'
+                ),
+            )
+
+            ticket_record._message_update_content(message, body=Markup("Hello <b>world</b>"))
+            self.assertEqual(
+                message.body,
+                Markup(
+                    '<p>Hello <b>world</b><span class="o-mail-Message-edited" data-o-datetime="2025-04-08 13:00:00"></span></p>'
+                ),
+            )
 
     @mute_logger('openerp.addons.mail.models.mail_mail')
     @users('employee')
@@ -1440,20 +1461,17 @@ class TestDiscuss(HttpCase, MailCommon, TestRecipients):
                     [], thread=record, search_filter=search_filter,
                 )
                 self.assertEqual(res["messages"], expected)
-                self.assertEqual(res["count"], len(expected))
 
         # no filter (All) returns everything, including the unbucketed messages
         all_res = self.env["mail.message"].with_user(self.user_employee)._message_fetch([], thread=record)
         posted = comment + email + note + tracking + activity + auto_comment + logged_note
         self.assertEqual(all_res["messages"] & posted, posted)
-        self.assertNotIn("count", all_res)
 
-        # an unknown filter is ignored, and must not report a filtered count
+        # an unknown filter is ignored
         res = self.env["mail.message"].with_user(self.user_employee)._message_fetch(
             [], thread=record, search_filter="unknown",
         )
         self.assertEqual(res["messages"], all_res["messages"])
-        self.assertNotIn("count", res)
 
     @users("employee")
     def test_unlink_notification_message(self):

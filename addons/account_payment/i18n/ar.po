@@ -13,8 +13,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-16 17:41+0000\n"
-"PO-Revision-Date: 2026-10-27 07:19+0000\n"
+"POT-Creation-Date: 2026-11-06 17:39+0000\n"
+"PO-Revision-Date: 2026-11-10 06:33+0000\n"
 "Last-Translator: \"Malaz Siddig Elsayed Abuidris (msea)\" <msea@odoo.com>\n"
 "Language-Team: Arabic <https://translate.odoo.com/projects/odoo-20/"
 "account_payment/ar/>\n"
@@ -208,11 +208,6 @@ msgid "Authorized Transactions"
 msgstr "المعاملات المُصرح بها"
 
 #. module: account_payment
-#: model:ir.model,name:account_payment.model_account_bank_statement_line
-msgid "Bank Transaction"
-msgstr "المعاملات البنكية"
-
-#. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.account_invoice_view_form_inherit_payment
 msgid "Capture Transaction"
 msgstr "تسجيل المعاملة"
@@ -250,7 +245,6 @@ msgid "Discount Date"
 msgstr "تاريخ الخصم"
 
 #. module: account_payment
-#: model:ir.model.fields,field_description:account_payment.field_account_bank_statement_line__display_name
 #: model:ir.model.fields,field_description:account_payment.field_account_journal__display_name
 #: model:ir.model.fields,field_description:account_payment.field_account_move__display_name
 #: model:ir.model.fields,field_description:account_payment.field_account_payment__display_name
@@ -322,7 +316,6 @@ msgid "Has a pending refund"
 msgstr "يحتوي على عملية استرداد أموال معلقة"
 
 #. module: account_payment
-#: model:ir.model.fields,field_description:account_payment.field_account_bank_statement_line__id
 #: model:ir.model.fields,field_description:account_payment.field_account_journal__id
 #: model:ir.model.fields,field_description:account_payment.field_account_move__id
 #: model:ir.model.fields,field_description:account_payment.field_account_payment__id
@@ -428,7 +421,7 @@ msgstr ""
 #. module: account_payment
 #: model:ir.ui.menu,name:account_payment.payment_provider_menu
 msgid "Online Payments"
-msgstr ""
+msgstr "المدفوعات عبر الإنترنت"
 
 #. module: account_payment
 #. odoo-python
@@ -510,7 +503,7 @@ msgstr "الدفع"
 #. module: account_payment
 #: model:ir.module.module,shortdesc:base.module_account_payment
 msgid "Payment - Account"
-msgstr ""
+msgstr "الدفع - الحساب"
 
 #. module: account_payment
 #: model:ir.model.fields,field_description:account_payment.field_payment_refund_wizard__payment_amount
@@ -525,12 +518,12 @@ msgstr "دفتر يومية الدفع"
 #. module: account_payment
 #: model:ir.model,name:account_payment.model_account_payment_method
 msgid "Payment Method"
-msgstr ""
+msgstr "طريقة الدفع"
 
 #. module: account_payment
 #: model:ir.model,name:account_payment.model_account_payment_method_line
 msgid "Payment Method Line"
-msgstr ""
+msgstr "بند طريقة الدفع"
 
 #. module: account_payment
 #: model:ir.model,name:account_payment.model_payment_provider
@@ -818,7 +811,10 @@ msgstr "متأخر"
 #. odoo-python
 #: code:addons/account_payment/models/payment_provider.py:0
 msgid "pricelist not allowed"
-msgstr ""
+msgstr "قائمة الأسعار غير مسموح بها"
+
+#~ msgid "Bank Transaction"
+#~ msgstr "المعاملات البنكية"
 
 #~ msgid "Bank Statement Line"
 #~ msgstr "بند كشف الحساب البنكي"

@@ -79,7 +79,7 @@ class AccountPaymentRegister(models.TransientModel):
     def _l10n_ar_set_amount_from_withholdings(self):
         self.ensure_one()
         lines = self.withholding_line_ids
-        with self.env.protecting([lines._fields['base_amount']], lines):
+        with self.env.protecting([lines._fields[fname] for fname in ('base_amount', 'amount')], lines):
             self.amount = sum(lines.mapped('amount'))
 
     def _l10n_ar_set_amount_and_recompute_withholdings(self, amount):
@@ -156,7 +156,7 @@ class AccountPaymentRegister(models.TransientModel):
         """
         super()._compute_withholding_line_ids()
         for wizard in self:
-            if wizard.country_code != 'AR' or not wizard.display_withholding or not wizard.can_edit_wizard:
+            if wizard.country_code != 'AR' or not wizard.display_withholding or not wizard.can_edit_wizard or not wizard.partner_id:
                 continue
 
             type_tax_use = 'purchase' if wizard.partner_type == 'supplier' else 'sale'

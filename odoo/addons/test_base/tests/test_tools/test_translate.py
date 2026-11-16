@@ -465,6 +465,31 @@ class TranslationToolsTestCase(BaseCase):
         self.assertNotIn('123', terms)
         self.assertNotIn('!@#', terms)
 
+    def test_babel_extract_qweb_translate_suffix(self):
+        """``.translate`` attributes are extracted on component nodes only."""
+        source = b"""
+            <templates>
+                <t t-name="x_test_template">
+                    <Component label.translate="On component" title="Not translated"/>
+                    <t t-call="other" aProp.translate="On t-call" title="Not translated"/>
+                    <t t-call-slot="default" aProp.translate="On t-call-slot" title="Not translated"/>
+                    <div t-component="comp" aProp.translate="On t-component" placeholder="Not translated"/>
+                    <t t-set-slot="slot" aProp.translate="On t-set-slot" alt="Not translated"/>
+                    <div foo.translate="On plain node"/>
+                </t>
+            </templates>
+        """
+        extracted = list(babel_extract_qweb(io.BytesIO(source), None, None, None))
+        terms = [term for _, _, term, _ in extracted]
+
+        self.assertIn('On component', terms)
+        self.assertIn('On t-call', terms)
+        self.assertIn('On t-call-slot', terms)
+        self.assertIn('On t-component', terms)
+        self.assertIn('On t-set-slot', terms)
+        self.assertNotIn('Not translated', terms)
+        self.assertNotIn('On plain node', terms)
+
     def test_gettext_local_user_not_a_user(self):
         """A local variable named 'user' that is no user must not break _()."""
         def get_label():
@@ -3026,13 +3051,13 @@ class TestStoredTranslations(TransactionCase):
 class TestLanguageInstallPerformance(TransactionCase):
     def test_language_install(self):
         """ Install a language on a complete database. """
-        fr_BE = self.env.ref('base.lang_fr_BE')
-        self.assertFalse(fr_BE.active)
+        fr_CA = self.env.ref('base.lang_fr_CA')
+        self.assertFalse(fr_CA.active)
 
         t0 = time.time()
-        fr_BE.action_unarchive()
+        fr_CA.action_unarchive()
         t1 = time.time()
-        _stats_logger.info("installed language fr_BE in %.3fs", t1 - t0)
+        _stats_logger.info("installed language fr_CA in %.3fs", t1 - t0)
 
 
 @tagged('at_install', '-post_install')  # LEGACY at_install

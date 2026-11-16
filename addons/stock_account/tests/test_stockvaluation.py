@@ -59,6 +59,36 @@ class TestStockValuation(TestStockValuationCommon):
         with self.assertRaises(UserError):
             self._close()
 
+    def test_avco_consumable_out_move_keeps_its_sign_through_a_replay(self):
+        """ A non-storable product has no product.value row - _change_standard_price
+        does not write one for consumables - so the valuation replay uses the out
+        move's value (which is negative) with an unsigned quantity. A consumable
+        has no incoming valuation history, so its seed always comes from an out
+        move.
+
+        We cannot test using product_avco as it is storable, and cannot change
+        it to non-storable as it will already have a product.value row written.
+        """
+        product = self.env['product.product'].create({
+            'name': 'Consumable Avco',
+            'is_storable': False,
+            'categ_id': self.category_avco.id,
+            'uom_id': self.uom.id,
+            'standard_price': 7.0,
+        })
+        self.assertFalse(self.env['product.value'].sudo().search([('product_id', '=', product.id)]))
+
+        out_move = self._make_out_move(product, 10)
+        self.assertEqual(out_move.value, -70.0)
+
+        # a receipt after the delivery leaves the in move's remaining quantity
+        # out of step with its valued quantity, which sends the valuation into
+        # its correction replay
+        self._make_in_move(product, 10, 7.0)
+        out_move.invalidate_recordset(['value'])
+
+        self.assertEqual(out_move.value, -70.0)
+
     def test_fifo_perpetual_1(self):
         product = self.product_fifo
 
@@ -3994,3 +4024,46 @@ class TestStockValuation(TestStockValuationCommon):
                 'avg_cost': 10
             }],
         )
+
+    def test_avco_valuation_multicompany(self):
+        """
+        Test that changing values manually for an AVCO product in different companies results
+        in the correct total value when the product is viewed in a single or multi-company context.
+        """
+        product_avco = self.product_avco
+        now = Datetime.now()
+
+        c1 = self.env.company
+        c2 = self.env['res.company'].sudo().create({'name': 'Test Company'})
+        c1_stock_loc = self.warehouse.lot_stock_id
+        c2_stock_loc = self.env['stock.warehouse'].sudo().search([('company_id', '=', c2.id)], limit=1).lot_stock_id
+        product_company1 = product_avco.with_context(allowed_company_ids=[c1.id])
+        product_company2 = product_avco.with_context(allowed_company_ids=[c2.id])
+
+        # Change cost manually and create stock move for each company
+        with freeze_time(now + timedelta(minutes=1)):
+            product_company1.standard_price = 10
+        with freeze_time(now + timedelta(minutes=2)):
+            self._make_in_move(product_company1, 2.0, company=c1, location_id=self.supplier_location.id, location_dest_id=c1_stock_loc.id)
+        with freeze_time(now + timedelta(minutes=3)):
+            product_company2.standard_price = 50
+        with freeze_time(now + timedelta(minutes=4)):
+            self._make_in_move(product_company2, 1.0, company=c2, location_id=self.supplier_location.id, location_dest_id=c2_stock_loc.id)
+
+        self.assertRecordValues(product_company1, [{
+            'total_value': 20,
+            'qty_available': 2,
+            'avg_cost': 10,
+        }])
+        self.assertRecordValues(product_company2, [{
+            'total_value': 50,
+            'qty_available': 1,
+            'avg_cost': 50,
+        }])
+        product_companies = product_avco.with_context(allowed_company_ids=[c1.id, c2.id])
+        product_companies.invalidate_recordset(fnames=['total_value'])
+        self.assertRecordValues(product_companies, [{
+            'total_value': 70,  # sum of both total_values
+            'qty_available': 3,
+            'avg_cost': 23.33,
+        }])

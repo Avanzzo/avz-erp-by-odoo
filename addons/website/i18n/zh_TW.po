@@ -14,8 +14,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~18.3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-30 17:38+0000\n"
-"PO-Revision-Date: 2026-09-25 11:26+0000\n"
+"POT-Creation-Date: 2026-11-06 17:38+0000\n"
+"PO-Revision-Date: 2026-11-09 08:33+0000\n"
 "Last-Translator: \"Tony Ng (ngto)\" <ngto@odoo.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.odoo.com/"
 "projects/odoo-20/website/zh_Hant/>\n"
@@ -1383,6 +1383,9 @@ msgid ""
 "icon=\"handshake\"/>\n"
 "                            <b>Services</b>"
 msgstr ""
+"<i class=\"s_mega_menu_little_icons_icon oi oi-fw me-2\" data-"
+"icon=\"handshake\"/>\n"
+"                            <b>服務</b>"
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_little_icons
@@ -1391,6 +1394,9 @@ msgid ""
 "icon=\"headphones\"/>\n"
 "                            <b>Help center</b>"
 msgstr ""
+"<i class=\"s_mega_menu_little_icons_icon oi oi-fw me-2\" data-"
+"icon=\"headphones\"/>\n"
+"                            <b>支援中心</b>"
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_little_icons
@@ -1399,6 +1405,9 @@ msgid ""
 ">\n"
 "                            <b>Guides</b>"
 msgstr ""
+"<i class=\"s_mega_menu_little_icons_icon oi oi-fw me-2\" data-icon=\"map\"/>"
+"\n"
+"                            <b>指南</b>"
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_little_icons
@@ -1407,6 +1416,9 @@ msgid ""
 "icon=\"newspaper\"/>\n"
 "                            <b>Our blog</b>"
 msgstr ""
+"<i class=\"s_mega_menu_little_icons_icon oi oi-fw me-2\" data-"
+"icon=\"newspaper\"/>\n"
+"                            <b>網誌</b>"
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_little_icons
@@ -1415,6 +1427,9 @@ msgid ""
 ">\n"
 "                            <b>Products</b>"
 msgstr ""
+"<i class=\"s_mega_menu_little_icons_icon oi oi-fw me-2\" data-icon=\"sell\"/>"
+"\n"
+"                            <b>產品</b>"
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_little_icons
@@ -1423,6 +1438,9 @@ msgid ""
 ">\n"
 "                            <b>Customers</b>"
 msgstr ""
+"<i class=\"s_mega_menu_little_icons_icon oi oi-fw me-2\" data-icon=\"star\"/>"
+"\n"
+"                            <b>客戶</b>"
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_little_icons
@@ -1431,6 +1449,9 @@ msgid ""
 "icon=\"visibility\"/>\n"
 "                            <b>About us</b>"
 msgstr ""
+"<i class=\"s_mega_menu_little_icons_icon oi oi-fw me-2\" data-"
+"icon=\"visibility\"/>\n"
+"                            <b>關於我們</b>"
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_little_icons
@@ -1439,6 +1460,9 @@ msgid ""
 "icon=\"calendar_today\"/>\n"
 "                            <b>Events</b>"
 msgstr ""
+"<i class=\"s_mega_menu_little_icons_icon oi oi-fw oi-filled me-2\" data-"
+"icon=\"calendar_today\"/>\n"
+"                            <b>活動</b>"
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_little_icons
@@ -1447,6 +1471,9 @@ msgid ""
 "icon=\"group\"/>\n"
 "                            <b>Partners</b>"
 msgstr ""
+"<i class=\"s_mega_menu_little_icons_icon oi oi-fw oi-filled me-2\" data-"
+"icon=\"group\"/>\n"
+"                            <b>合作夥伴</b>"
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_thumbnails
@@ -4197,7 +4224,7 @@ msgstr "套用至所有卡片"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/icon_list_option.xml:0
 msgid "Applies to all icons at once"
-msgstr ""
+msgstr "一次過套用至所有圖示"
 
 #. module: website
 #. odoo-javascript
@@ -4861,6 +4888,7 @@ msgstr ""
 
 #. module: website
 #. odoo-javascript
+#: code:addons/website/static/src/builder/plugins/font/add_font_dialog.xml:0
 #: code:addons/website/static/src/builder/plugins/options/header/header_navigation_option.xml:0
 #: code:addons/website/static/src/builder/plugins/theme/theme_font_weight_option.xml:0
 #: code:addons/website/static/src/builder/plugins/theme/theme_tab_plugin.js:0
@@ -6128,7 +6156,7 @@ msgstr "具競爭力的價錢"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_icon_list
 msgid "Complete access"
-msgstr ""
+msgstr "完全存取權限"
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.bs_debug_view
@@ -6528,6 +6556,8 @@ msgid "Countdown is over - Firework"
 msgstr "倒數結束 － 煙花"
 
 #. module: website
+#. odoo-javascript
+#: code:addons/website/static/src/builder/plugins/options/visibility_option.xml:0
 #: model:ir.model.fields,field_description:website.field_website_visitor__country_id
 #: model_terms:ir.ui.view,arch_db:website.website_visitor_view_search
 msgid "Country"
@@ -7355,7 +7385,7 @@ msgstr "消失"
 #: code:addons/website/static/src/components/edit_head_body_dialog/edit_head_body_dialog.xml:0
 #: model_terms:ir.ui.view,arch_db:website.qweb_500
 msgid "Discard"
-msgstr "捨棄"
+msgstr "取消"
 
 #. module: website
 #. odoo-javascript
@@ -11967,6 +11997,8 @@ msgid "Language from the website when visitor has been created"
 msgstr "建立訪問者時來自網站的語言"
 
 #. module: website
+#. odoo-javascript
+#: code:addons/website/static/src/builder/plugins/options/visibility_option.xml:0
 #: model:ir.model.fields,field_description:website.field_res_config_settings__language_ids
 #: model:ir.model.fields,field_description:website.field_website__language_ids
 #: model_terms:ir.ui.view,arch_db:website.res_config_settings_view_form
@@ -12291,6 +12323,7 @@ msgstr "圖書館"
 
 #. module: website
 #. odoo-javascript
+#: code:addons/website/static/src/builder/plugins/font/add_font_dialog.xml:0
 #: code:addons/website/static/src/builder/plugins/options/searchbar_option.xml:0
 #: code:addons/website/static/src/builder/plugins/theme/theme_font_weight_option.xml:0
 #: code:addons/website/static/src/builder/plugins/theme/theme_tab_plugin.js:0
@@ -15736,7 +15769,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_icon_list
 msgid "Quick support"
-msgstr ""
+msgstr "快速支援"
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
@@ -15930,6 +15963,7 @@ msgstr "刷新路線清單"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/carousel_option.xml:0
 #: code:addons/website/static/src/builder/plugins/content_width_option.xml:0
+#: code:addons/website/static/src/builder/plugins/font/add_font_dialog.xml:0
 #: code:addons/website/static/src/builder/plugins/options/base_visibility_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/dynamic_snippet_carousel_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/footer_option.xml:0
@@ -16130,7 +16164,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/icon_list_option.xml:0
 msgid "Replace Icons"
-msgstr ""
+msgstr "更換圖示"
 
 #. module: website
 #. odoo-javascript
@@ -19848,6 +19882,24 @@ msgstr "前往網址"
 
 #. module: website
 #. odoo-javascript
+#: code:addons/website/static/src/builder/plugins/options/visibility_option.xml:0
+msgid "UTM Campaign"
+msgstr ""
+
+#. module: website
+#. odoo-javascript
+#: code:addons/website/static/src/builder/plugins/options/visibility_option.xml:0
+msgid "UTM Medium"
+msgstr ""
+
+#. module: website
+#. odoo-javascript
+#: code:addons/website/static/src/builder/plugins/options/visibility_option.xml:0
+msgid "UTM Source"
+msgstr ""
+
+#. module: website
+#. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/card_image_option.xml:0
 msgid "Ultrawide - 21/9"
 msgstr "超廣角 - 21:9"
@@ -21456,7 +21508,7 @@ msgstr "女性"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_icon_list
 msgid "Wonderful experience"
-msgstr ""
+msgstr "奇妙非凡體驗"
 
 #. module: website
 #. odoo-javascript
@@ -23204,12 +23256,6 @@ msgid "rows"
 msgstr "列"
 
 #. module: website
-#. odoo-javascript
-#: code:addons/website/static/src/components/resource_editor/resource_editor.xml:0
-msgid "scope.data.label"
-msgstr ""
-
-#. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
 msgid ""
 "scrolling, depth, effect, backgrounds, layer, visual, movement, parallax"
@@ -23386,12 +23432,6 @@ msgstr "theme.ir.ui.view"
 #: code:addons/website/static/src/snippets/s_countdown/000.xml:0
 msgid "this page"
 msgstr "此頁"
-
-#. module: website
-#. odoo-javascript
-#: code:addons/website/static/src/components/resource_editor/resource_editor.xml:0
-msgid "this.state.type === 'xml' ? resource.name : resource.label"
-msgstr ""
 
 #. module: website
 #. odoo-javascript

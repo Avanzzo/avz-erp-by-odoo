@@ -6,6 +6,11 @@
   not `if len(...)`.
 - Don't read a non-relational field on a multi-record set (it raises); iterate
   or `mapped`. Conversely, guard single-record assumptions with `ensure_one()`.
+- No record found is an empty recordset, never `None`:
+  `return self.env['library.book']`,
+  `books_by_author.get(author, self.env['library.book'])`.
+  `env.ref(xmlid, raise_if_not_found=False)` does return `None`: test it before
+  using it.
 - Combine domains with `odoo.fields.Domain`: the `&`, `|`, `~` operators for
   domains written inline, `Domain.AND`/`Domain.OR` for a list of domains you
   already hold. Never hand-build `'&'`/`'|'` prefix-notation lists.
@@ -29,6 +34,44 @@
   `_sql_constraints`: on master it is **ignored** with a log warning, the
   constraint is never created.
 
+# End `_order` on a unique field
+
+A model's `_order` ends with a field that is unique per record, usually `id`:
+`sequence, id`, `name, id`, `date desc, id desc`. The default `_order = 'id'`
+is unique already. When records sorted by `_order` come back in a random
+order in a caller or a test, add the tiebreaker to `_order`; do not change the
+test so it stops reading the order.
+
+```python
+# bad: two books with the same sequence come back in any order
+class LibraryBook(models.Model):
+    _name = 'library.book'
+    _order = 'sequence'
+
+# good
+class LibraryBook(models.Model):
+    _name = 'library.book'
+    _order = 'sequence, id'
+```
+
+## Why
+
+- The ORM adds no tiebreaker to `ORDER BY`. Records equal on every field of
+  `_order` come back in the order PostgreSQL picks, and that order can change
+  from one query to the next.
+- A paged list runs one `LIMIT`/`OFFSET` query per page: with ties, a record
+  shows on two pages and another one on none.
+- `search(..., limit=1)`, `records[0]` and a test that reads a position get a
+  different record from one run to the next.
+- The tie spreads: `_order` also sorts the one2many and many2many fields that
+  point to the model, and any order on a many2one to it.
+
+## Exceptions
+
+- Fields already unique together (a required `code` under a unique
+  constraint) need no `id`.
+- After a `desc` term that means "newest first", write `id desc`.
+
 # Methods and extension points
 
 - Methods are private (`_` prefix) by default. A public name is an RPC entry
@@ -39,6 +82,46 @@
   Don't pre-split for extension points that don't exist yet.
 - Don't use `odoo.http.request` in models: it is absent in crons, RPC, tests
   and the shell. Pass what the model needs in from the controller.
+
+# Set a state, never flip it
+
+A method that changes a state sets a fixed state, named by the method
+(`action_confirm`) or passed as an argument. A state that goes both ways gets
+one method per direction (`action_archive` and `action_unarchive`), or one
+method that takes the state to reach. No method reads the current value to
+write its opposite.
+
+```python
+# good
+def action_publish(self):
+    self.is_published = True
+
+def action_unpublish(self):
+    self.is_published = False
+
+# bad
+def action_toggle_published(self):
+    for book in self:
+        book.is_published = not book.is_published
+```
+
+A button that shows both states is two buttons, each one visible in one state
+and calling the method of its direction.
+
+## Why
+
+- A flip is not idempotent. A double click or a retried request sends the
+  same call twice, and the second call undoes the first one.
+- The caller decides from the state it shows. When the record changed since
+  the caller read it, in a second tab or by another user, a flip writes the
+  state the caller wanted to leave.
+- Only the server knows the state a flip reached, so it must send it back for
+  the client to show it.
+
+## Exceptions
+
+- The rule is for new methods. An override or a call of an existing flip
+  method keeps its name and its behaviour.
 
 # Transactions and exceptions
 

@@ -18518,10 +18518,6 @@ test(`list view with default_group_by`, async () => {
     });
     expect(`.o_list_renderer table`).toHaveClass("o_list_table_grouped");
     expect(`.o_group_header`).toHaveCount(2);
-    // open search bar in mobile
-    if (isSmall()) {
-        await contains(".o_control_panel_navigation > button").click();
-    }
     expect(`.o_searchview_facet`).toHaveCount(1);
     expect(`.o_searchview_facet`).toHaveText("Bar");
     expect.verifySteps(["web_read_group1"]);
@@ -18572,10 +18568,6 @@ test(`list view with multi-fields default_group_by`, async () => {
     });
     expect(`.o_list_renderer table`).toHaveClass("o_list_table_grouped");
     expect(`.o_group_header`).toHaveCount(3);
-    // open search bar in mobile
-    if (isSmall()) {
-        await contains(".o_control_panel_navigation > button").click();
-    }
     expect(`.o_searchview_facet`).toHaveCount(1);
     expect(`.o_searchview_facet`).toHaveText("Foo\n>\nBar");
     expect.verifySteps(["web_read_group1"]);
@@ -21007,10 +20999,6 @@ test(`cache web_read_group: do not send opening_info if not necessary`, async ()
     expect(`.o_group_header`).toHaveCount(1);
 
     // Do not follow the same steps as earlier, directly remove the filter
-    if (isSmall()) {
-        // Toggle searchbar in mobile
-        await contains(`.o_control_panel_navigation [data-icon='search']`).click();
-    }
     await contains(".o_searchview_facet [data-icon='close']").click();
     expect(`.o_group_header`).toHaveCount(4);
 
@@ -22035,6 +22023,35 @@ test(`column tag: optional attribute on sub-fields shows/hides individual sub-fi
     expect(
         `tbody tr:eq(0) td:not(.o_list_record_selector):eq(1) .o_column_group_field`
     ).toHaveCount(2);
+});
+
+test(`column tag: column is hidden when all its fields are optional and disabled`, async () => {
+    await mountView({
+        resModel: "foo",
+        type: "list",
+        arch: `
+            <list>
+                <field name="foo"/>
+                <column>
+                    <field name="int_field" optional="show"/>
+                    <field name="date" optional="hide"/>
+                </column>
+            </list>
+        `,
+    });
+
+    // Disable int_field: no sub-field is left, so the whole column disappears
+    await contains(`table .o_optional_columns .dropdown-toggle`).click();
+    await contains(`.o-dropdown-item:eq(0)`).click();
+    expect(`thead th:not(.o_list_record_selector)`).toHaveCount(2);
+    expect(`tbody tr:eq(0) td:not(.o_list_record_selector)`).toHaveCount(2);
+
+    // Enable date: the column is back, with date only
+    await contains(`.o-dropdown-item:eq(1)`).click();
+    expect(`thead th:not(.o_list_record_selector)`).toHaveCount(3);
+    expect(
+        `tbody tr:eq(0) td:not(.o_list_record_selector):eq(1) .o_column_group_field`
+    ).toHaveCount(1);
 });
 
 test(`column tag: aggregate computed for first aggregatable stacked field`, async () => {

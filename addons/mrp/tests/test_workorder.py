@@ -42,6 +42,7 @@ class TestWorkorder(TestMrpCommon):
         self.workcenter_1.write({
             'time_efficiency': 100, 'time_start': 0, 'time_stop': 0,
             'resource_calendar_id': calendar.id,
+            'tz': 'Europe/Brussels',
         })
         self.workcenter_1.capacity_ids.write({'time_start': 0, 'time_stop': 0})
         mo = self.env['mrp.production'].create({
@@ -211,3 +212,14 @@ class TestWorkorder(TestMrpCommon):
         self.assertTrue(wo1.sequence < wo2.sequence < wo3.sequence)
         mo.button_unplan()
         mo.button_plan()
+
+    def test_update_workorder_qty_produced_on_plan_mo(self):
+        """Saving a planned MO after updating a work order's produced quantity should not raise a UserError.
+        """
+        mo = self.env['mrp.production'].create({'bom_id': self.bom_4.id})
+        mo.action_confirm()
+        mo.button_plan()
+
+        with Form(mo) as mo_form:
+            with mo_form.workorder_ids.edit(0) as wo_form:
+                wo_form.qty_produced = 1

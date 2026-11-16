@@ -564,6 +564,12 @@
                 "language_regex": "^(ar)$"
             },
             {
+                "name": "l10n_ae_ubl_pint",
+                "filemask": "addons/l10n_ae_ubl_pint/i18n/*.po",
+                "new_base": "addons/l10n_ae_ubl_pint/i18n/l10n_ae_ubl_pint.pot",
+                "language_regex": "^(ar)$"
+            },
+            {
                 "name": "l10n_ae_pos",
                 "filemask": "addons/l10n_ae_pos/i18n/*.po",
                 "new_base": "addons/l10n_ae_pos/i18n/l10n_ae_pos.pot",
@@ -1354,6 +1360,12 @@
                 "filemask": "addons/l10n_kz/i18n/*.po",
                 "new_base": "addons/l10n_kz/i18n/l10n_kz.pot",
                 "language_regex": "^(ru)$"
+            },
+            {
+                "name": "l10n_la",
+                "filemask": "addons/l10n_la/i18n/*.po",
+                "new_base": "addons/l10n_la/i18n/l10n_la.pot",
+                "language_regex": "^(lo)$"
             },
             {
                 "name": "l10n_latam_check",

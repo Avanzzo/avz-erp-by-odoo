@@ -183,6 +183,7 @@ export class ImagePlugin extends Plugin {
     }
 
     destroy() {
+        this.fileViewer.close();
         super.destroy();
     }
 
@@ -330,12 +331,15 @@ export class ImagePlugin extends Plugin {
 
     setSelectionAroundImage(img) {
         const [anchorNode, anchorOffset, focusNode, focusOffset] = boundariesOut(img);
-        this.dependencies.selection.setSelection({
-            anchorNode,
-            anchorOffset,
-            focusNode,
-            focusOffset,
-        });
+        this.dependencies.selection.setSelection(
+            {
+                anchorNode,
+                anchorOffset,
+                focusNode,
+                focusOffset,
+            },
+            { normalize: false }
+        );
         this.dependencies.selection.focusEditable();
     }
 }

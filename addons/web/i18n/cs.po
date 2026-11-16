@@ -19,15 +19,15 @@
 # "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Marta (wacm)" <wacm@odoo.com>, 2025, 2026.
 # Weblate <noreply-mt-weblate@weblate.org>, 2025.
+# Lukáš Matějovský <lukas.matejovsky.71@gmail.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-30 17:40+0000\n"
-"PO-Revision-Date: 2026-08-31 20:49+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Czech <https://translate.odoo.com/projects/odoo-s19-4/web/cs/"
-">\n"
+"POT-Creation-Date: 2026-11-06 17:40+0000\n"
+"PO-Revision-Date: 2026-11-12 08:34+0000\n"
+"Last-Translator: Lukáš Matějovský <lukas.matejovsky.71@gmail.com>\n"
+"Language-Team: Czech <https://translate.odoo.com/projects/odoo-20/web/cs/>\n"
 "Language: cs\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -2559,13 +2559,13 @@ msgstr ""
 #: code:addons/web/static/src/search/search_bar/search_bar.xml:0
 #: code:addons/web/static/src/search/search_bar_menu/search_bar_menu.xml:0
 msgid "Custom Filter..."
-msgstr ""
+msgstr "Vlastní filtr..."
 
 #. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/search/custom_group_by_item/custom_group_by_item.xml:0
 msgid "Custom Group"
-msgstr ""
+msgstr "Vlastní skupina"
 
 #. module: web
 #. odoo-python
@@ -4332,6 +4332,12 @@ msgid "Invalid Operation"
 msgstr "Neplatná operace"
 
 #. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/graph/graph_controller.xml:0
+msgid "Invalid data"
+msgstr ""
+
+#. module: web
 #. odoo-python
 #: code:addons/web/controllers/json.py:0
 msgid "Invalid default search filter name for %s"
@@ -5411,7 +5417,7 @@ msgstr "Muslim"
 #. odoo-javascript
 #: code:addons/web/static/src/webclient/user_menu/user_menu_items.js:0
 msgid "My Preferences"
-msgstr ""
+msgstr "Moje preference"
 
 #. module: web
 #. odoo-javascript
@@ -5681,6 +5687,12 @@ msgstr "Nenalezen žádný výsledek"
 #: code:addons/web/static/src/core/select_menu/select_menu.xml:0
 msgid "No results"
 msgstr "Žádné výsledky"
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/webclient/settings_form_view/settings_form_view.xml:0
+msgid "No settings found"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -6250,6 +6262,14 @@ msgstr "Telefon"
 #: code:addons/web/static/src/views/graph/graph_controller.xml:0
 msgid "Pie Chart"
 msgstr "Koláčový graf"
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/graph/graph_controller.xml:0
+msgid ""
+"Pie chart cannot mix positive and negative numbers. Try to change your "
+"domain to only display positive results"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -7019,7 +7039,7 @@ msgstr "Uložit ručně"
 #. odoo-javascript
 #: code:addons/web/static/src/search/custom_favorite_item/custom_favorite_item.xml:0
 msgid "Save search"
-msgstr ""
+msgstr "Uložit aktuální filtr"
 
 #. module: web
 #. odoo-javascript
@@ -8325,6 +8345,12 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/webclient/settings_form_view/settings_form_view.xml:0
+msgid "Try searching for another keyword"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/views/action_helper.xml:0
 msgid ""
 "Try to add some records, or make sure that there is no\n"
@@ -8678,7 +8704,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/web/static/src/search/custom_favorite_item/custom_favorite_item.xml:0
 msgid "Use this filter by default when opening this view"
-msgstr ""
+msgstr "Použít tento filtr jako výchozí při otevření tohoto zobrazení"
 
 #. module: web
 #. odoo-javascript
@@ -9449,6 +9475,16 @@ msgid ""
 "confirmation|confirmed|credentials|done|green checkmark|identity|legitimacy|"
 "mark|official|ok|registered|select|stamp of approval|star|success|tick|"
 "trusted|valid|validate|verified|verified account|verified user|yes"
+msgstr ""
+
+#. module: web
+#. odoo-python
+#: code:addons/web/icons.py:0
+msgid ""
+"accepted|accurate|approved|archive|check|complete|confirm|confirmation|"
+"confirmed|correct|data|directory|doc|document|done|drive|enter|file|finished|"
+"folder|folders|mark|marked|ok|okay|processed|saved|select|sheet|slide|status|"
+"storage|stored|success|tick|validated|verified|verify|yes"
 msgstr ""
 
 #. module: web
@@ -10317,6 +10353,16 @@ msgid ""
 "inprogress|load|loading refresh|loop|media|navigation|playback|process|redo|"
 "refresh|refresh data|refresh page|reload|renew|repeat|repeat playlist|repeat "
 "song|restart|rotate|synchronize|turn|update"
+msgstr ""
+
+#. module: web
+#. odoo-python
+#: code:addons/web/icons.py:0
+msgid ""
+"action|arrange|arrow|button|cloud|copy|data|deliver|direction|doc|document|"
+"drive|drive storage|file|file management|folder|forward|graphic|icon|manage|"
+"move|navigation|organization|relocate|right|send|sheet|slide|storage|symbol|"
+"transfer|transport|ui element"
 msgstr ""
 
 #. module: web
@@ -25888,19 +25934,6 @@ msgstr "optický"
 #: code:addons/web/static/src/core/emoji_picker/emoji_data.js:0
 msgid "optical disk"
 msgstr "optický disk"
-
-#. module: web
-#. odoo-javascript
-#: code:addons/web/static/src/core/autocomplete/autocomplete.xml:0
-msgid "option.label"
-msgstr ""
-
-#. module: web
-#. odoo-javascript
-#: code:addons/web/static/src/core/record_selectors/record_autocomplete.xml:0
-#: code:addons/web/static/src/views/fields/relational_utils.xml:0
-msgid "optionScope.label"
-msgstr ""
 
 #. module: web
 #. odoo-javascript

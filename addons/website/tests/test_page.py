@@ -15,6 +15,7 @@ from odoo.tools import mute_logger
 from odoo.addons.base.tests.common import TransactionCaseWithUserDemo
 from odoo.addons.http_routing.tests.common import MockRequest
 from odoo.addons.website.controllers.main import Website
+from odoo.addons.website.tests.common import set_url_code
 
 import werkzeug
 
@@ -313,6 +314,11 @@ class TestPage(common.TransactionCase):
 
 @tagged('-at_install', 'post_install')
 class WithContext(HttpCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        set_url_code(cls.env.ref('base.lang_fr'))
+
     def setUp(self):
         super().setUp()
         Page = self.env['website.page']
@@ -345,6 +351,22 @@ class WithContext(HttpCase):
         r = self.url_open(specific_page.url)
         self.assertEqual(r.status_code, 200, "Admin should see the specific unpublished page")
         self.assertEqual('I am a specific page' in r.text, True, "Admin should see the specific unpublished page")
+
+    def test_unpublished_page_deactivated_user(self):
+        designer = common.new_test_user(
+            self.env,
+            login='designer',
+            groups='base.group_user,website.group_website_designer',
+        )
+        self.page.is_published = False
+
+        self.authenticate(designer.login, designer.login)
+        r = self.url_open(self.page.url)
+        self.assertEqual(r.status_code, 200, "Website Designers should see unpublished pages")
+
+        designer.active = False
+        r = self.url_open(self.page.url)
+        self.assertEqual(r.status_code, 404, "Deactivated users should be logged out before serving fallback pages")
 
     def test_unpublished_page_no_cache(self):
         """Ensure that a previously-published page that is now unpublished will not be cached."""
@@ -619,7 +641,6 @@ class WithContext(HttpCase):
     def test_07_alternatives(self):
         website = self.env.ref('base.default_website')
         lang_fr = self.env['res.lang']._activate_lang('fr_FR')
-        lang_fr.write({'url_code': 'fr'})
         website.language_ids = self.env.ref('base.lang_en') + lang_fr
         website.default_lang_id = self.env.ref('base.lang_en')
 

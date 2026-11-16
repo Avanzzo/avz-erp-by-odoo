@@ -231,7 +231,7 @@ class AccountMove(models.Model):
                 'partner_id': self.partner_id.id,
             },
             'domain': [
-                ('partner_id', 'in', (self.partner_id | self.partner_id.commercial_partner_id).ids),
+                ('partner_id.commercial_partner_id', '=', self.partner_id.commercial_partner_id.id),
                 ('company_id', 'in', self.env.companies.ids),
                 ('company_id', 'child_of', self.company_id.ids),
                 '|', '|', '|',
@@ -436,8 +436,8 @@ class AccountMove(models.Model):
                         # logic to fill these new fields.
                         purchase_line_candidates[purchase_line] = difflib.SequenceMatcher(
                             None,
-                            invoice_line.label,
-                            purchase_line.label,
+                            invoice_line.label or "",
+                            purchase_line.label or "",
                         ).ratio()
 
                 if len(purchase_line_candidates) > 0:
@@ -643,7 +643,8 @@ class AccountMove(models.Model):
                         'sequence': -1,
                     })]
 
-        if not any(line.purchase_order_id for line in self.line_ids):
+        # Only clean the origin when it was guessed from the line descriptions: an explicit order reference is kept.
+        if self.env.context.get('invoice_origin_from_description') and not any(line.purchase_order_id for line in self.line_ids):
             self.invoice_origin = False
 
     def _get_action_add_from_catalog_extra_context(self):

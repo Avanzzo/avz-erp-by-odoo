@@ -933,7 +933,7 @@ Please change the quantity done or the rounding precision in your settings.""",
             self._update_orderpoints()
         if 'picking_id' in vals:
             self._set_references()
-        if self.env.user.has_group('stock.group_stock_picking_batch') and\
+        if self.env['stock.picking']._is_batch_feature_enabled() and\
            'state' in vals and vals['state'] in ('partially_available', 'assigned'):
             for picking in self.picking_id:
                 if picking.state != 'assigned':
@@ -950,6 +950,7 @@ Please change the quantity done or the rounding precision in your settings.""",
         orderpoints = self._get_orderpoints_to_update()
         orderpoints.invalidate_recordset(['qty_to_order', 'qty_forecast'])
         self.env.add_to_compute(self.env['stock.warehouse.orderpoint']._fields['qty_to_order_computed'], orderpoints)
+        self.env.add_to_compute(self.env['stock.warehouse.orderpoint']._fields['deadline_date'], orderpoints)
 
     def _get_orderpoints_to_update(self):
         domains = []
@@ -1199,13 +1200,13 @@ Please change the quantity done or the rounding precision in your settings.""",
         assert mode in ('generate', 'import')
         default_vals = {}
 
-        def generate_lot_qty(quantity, qty_per_lot):
+        def generate_lot_qty(quantity, qty_per_lot, uom):
             if qty_per_lot <= 0:
                 raise UserError(_("The quantity per lot should always be a positive value."))
             line_count = int(quantity // qty_per_lot)
             leftover = quantity % qty_per_lot
             qty_array = [qty_per_lot] * line_count
-            if leftover:
+            if not uom.is_zero(leftover):
                 qty_array.append(leftover)
             return qty_array
 
@@ -1219,7 +1220,8 @@ Please change the quantity done or the rounding precision in your settings.""",
                 default_vals[remove_prefix(key, 'default_')] = context_data[key]
 
         if default_vals['tracking'] == 'lot' and mode == 'generate':
-            lot_qties = generate_lot_qty(default_vals['quantity'], count)
+            product = self.env['product.product'].browse(default_vals['product_id'])
+            lot_qties = generate_lot_qty(default_vals['quantity'], count, product.uom_id)
         else:
             lot_qties = [1] * count
 
@@ -1611,7 +1613,7 @@ Please change the quantity done or the rounding precision in your settings.""",
         if self.partner_id:
             picking_partner_id = self._get_picking_partner().id
             domain = Domain.AND([domain, [('partner_id', '=', picking_partner_id)]])
-        if self.env.user.has_group('stock.group_stock_picking_batch'):
+        if self.env['stock.picking']._is_batch_feature_enabled():
             domain = Domain.AND([
                 domain,
                 ['|', ('batch_id', '=', False), ('batch_id.is_wave', '=', False)],
@@ -1672,7 +1674,7 @@ Please change the quantity done or the rounding precision in your settings.""",
         return vals
 
     def _assign_picking_post_process(self, new=False):
-        if self.env.user.has_group('stock.group_stock_picking_batch'):
+        if self.env['stock.picking']._is_batch_feature_enabled():
             for picking in self.picking_id:
                 picking._find_auto_batch()
         pass
@@ -2271,7 +2273,7 @@ Please change the quantity done or the rounding precision in your settings.""",
             self.picking_id._check_entire_pack()
         StockMove.browse(moves_to_redirect).move_line_ids._apply_putaway_strategy()
 
-        if self.env.user.has_group('stock.group_stock_picking_batch'):
+        if self.env['stock.picking']._is_batch_feature_enabled():
             self.move_line_ids._auto_wave()
 
     def _action_cancel(self):
@@ -2467,6 +2469,7 @@ Please change the quantity done or the rounding precision in your settings.""",
         orderpoints = self._get_orderpoints_to_update()
         res = super().unlink()
         self.env.add_to_compute(self.env['stock.warehouse.orderpoint']._fields['qty_to_order_computed'], orderpoints)
+        self.env.add_to_compute(self.env['stock.warehouse.orderpoint']._fields['deadline_date'], orderpoints)
         return res
 
     def _prepare_move_split_vals(self, qty):
@@ -2917,6 +2920,16 @@ Please change the quantity done or the rounding precision in your settings.""",
     def _visible_quantity(self):
         self.ensure_one()
         return self.quantity
+
+    def _is_return(self):
+        """ A return of a return is a new shipment, so only odd positions in a return chain are returns """
+        self.ensure_one()
+        seen = set()
+        move = self
+        while move.origin_returned_move_id and move.id not in seen:
+            seen.add(move.id)
+            move = move.origin_returned_move_id
+        return len(seen) % 2 == 1
 
     def _is_incoming(self):
         self.ensure_one()

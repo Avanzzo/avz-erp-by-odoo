@@ -8,7 +8,7 @@ import odoo.tests
 from odoo import http
 from odoo.addons.base.tests.common import HttpCaseWithUserDemo
 from odoo.addons.html_editor.controllers.main import HTML_Editor
-from odoo.addons.website.tests.common import HttpCaseWithWebsiteUser
+from odoo.addons.website.tests.common import HttpCaseWithWebsiteUser, set_url_code
 from odoo.fields import Command
 from odoo.tools import mute_logger
 
@@ -219,6 +219,11 @@ class TestUiHtmlEditorWithExternal(HttpCaseWithUserDemo):
 
 @odoo.tests.tagged('-at_install', 'post_install')
 class TestUiTranslate(odoo.tests.HttpCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        set_url_code(cls.env.ref('base.lang_fr'))
+
     def test_admin_tour_rte_translator(self):
         self.env['res.lang'].create({
             'name': 'Parseltongue',
@@ -389,6 +394,34 @@ class TestUiTranslate(odoo.tests.HttpCase):
         })
 
         self.start_tour(self.env['website'].get_client_action_url('/', True), 'translate_table_of_content_snippet', login='admin')
+
+    def test_create_page_from_template_in_language(self):
+        lang_en = self.env.ref('base.lang_en')
+        lang_fr = self.env.ref('base.lang_fr')
+        self.env['res.lang']._activate_lang(lang_fr.code)
+        default_website = self.env.ref('base.default_website')
+        default_website.write({
+            'default_lang_id': lang_en.id,
+            'language_ids': [(6, 0, (lang_en + lang_fr).ids)],
+        })
+
+        arch = """
+            <t t-name="website.page_template_in_language">
+                <t t-call="website.layout"><div id="wrap"><h1>Some content in English</h1></div></t>
+            </t>
+        """
+        view = self.env["ir.ui.view"].create({"name": "Translated page template", "type": "qweb", "arch": arch})
+        view.update_field_translations('arch_db', {lang_fr.code: {'Some content in English': 'Du contenu en français'}})
+        self.env["website.page"].create(
+            {
+                "name": "Translated page template",
+                "url": "/translated_page_template",
+                "view_id": view.id,
+                "is_published": True,
+                "is_new_page_template": True,
+            },
+        )
+        self.start_tour(self.env['website'].get_client_action_url("/", False), "create_page_from_template_in_language", login="admin")
 
 
 @odoo.tests.common.tagged('post_install', '-at_install')

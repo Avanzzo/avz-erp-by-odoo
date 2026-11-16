@@ -56,12 +56,18 @@ class Account_Edi_Proxy_ClientUser(models.Model):
 
     @handle_demo
     def _call_peppol_proxy(self, endpoint, params=None):
+        def raise_with_id_client(msg):
+            raise UserError(self.env._('%(msg)s (EDI Proxy User Id client "%(id_client)s")',
+                msg=msg,
+                id_client=self.id_client,
+            ))
+
         self.ensure_one()
         peppol_proxy_types = self._get_peppol_proxy_types()
         if self.proxy_type not in peppol_proxy_types:
             proxy_type_map = dict(self._fields['proxy_type']._description_selection(self.env))
             proxy_types = [proxy_type_map[proxy_type] for proxy_type in peppol_proxy_types]
-            raise UserError(self.env._('EDI user should be of one of the following types: %s', format_list(self.env, proxy_types, 'or')))
+            raise_with_id_client(self.env._('EDI user should be of one of the following types: %s', format_list(self.env, proxy_types, 'or')))
 
         token_out_of_sync_error_message = self.env._(
             "Failed to connect to Peppol Access Point. This might happen if you restored a database from a backup or copied it without neutralization. "
@@ -69,7 +75,7 @@ class Account_Edi_Proxy_ClientUser(models.Model):
         )
 
         if self.is_token_out_of_sync:
-            raise UserError(token_out_of_sync_error_message)
+            raise_with_id_client(token_out_of_sync_error_message)
 
         params = params or {}
         try:
@@ -90,18 +96,18 @@ class Account_Edi_Proxy_ClientUser(models.Model):
                 # commit the above changes before raising below
                 if not modules.module.current_test:
                     self.env.cr.commit()
-                raise UserError(_('We could not find a user with this information on our server. Please check your information.'))
+                raise_with_id_client(self.env._('We could not find a user with this information on our server. Please check your information.'))
 
             elif e.code == 'invalid_signature':
                 self._mark_connection_out_of_sync()
                 if not tools.config['test_enable'] and not modules.module.current_test:
                     self.env.cr.commit()
-                raise UserError(token_out_of_sync_error_message)
-            raise UserError(e.message)
+                raise_with_id_client(token_out_of_sync_error_message)
+            raise_with_id_client(e.message)
 
         if error_vals := response.get('error'):
             error_message = get_peppol_error_message(self.env, error_vals)
-            raise UserError(error_message)
+            raise_with_id_client(error_message)
 
         return response
 
@@ -764,6 +770,10 @@ class Account_Edi_Proxy_ClientUser(models.Model):
     # BUSINESS ACTIONS
     # -------------------------------------------------------------------------
 
+    def _get_peppol_supported_document_types(self):
+        self.ensure_one()
+        return self.company_id._peppol_supported_document_types()
+
     def _peppol_register_sender_as_receiver(self):
         self.ensure_one()
         company = self.company_id
@@ -785,7 +795,7 @@ class Account_Edi_Proxy_ClientUser(models.Model):
             endpoint=self._get_peppol_proxy_endpoint('1/register_sender_as_receiver'),
             params={
                 'migration_key': company.sudo().account_peppol_migration_key,
-                'supported_identifiers': list(company._peppol_supported_document_types())
+                'supported_identifiers': list(self._get_peppol_supported_document_types())
             },
         )
         # once we sent the migration key over, we don't need it

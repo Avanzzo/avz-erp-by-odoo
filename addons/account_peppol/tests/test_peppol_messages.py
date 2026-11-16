@@ -172,15 +172,16 @@ class TestPeppolMessage(TestAccountMoveSendCommon, MailCommon):
         self.assertFalse(wizard.alerts)  # there is no alerts
 
     def test_send_peppol_alerts_not_valid_format_partner(self):
+        self.valid_partner.invoice_edi_format = 'nlcius'
         move = self.create_move(self.valid_partner)
         move.action_post()
         with (
             mock_lookup_success('0208:0428759497', services=[]),
             mock_lookup_not_found('9925:be2718281828'),
         ):
-            wizard = self.create_send_and_print(move, sending_methods=['peppol'])
+            wizard = self.create_send_and_print(move, sending_methods=['peppol'])  # Peppol not checked by default, force it
 
-        self.assertEqual(wizard.invoice_edi_format, 'ubl_bis3')
+        self.assertEqual(wizard.invoice_edi_format, 'nlcius')
         self.assertEqual(self.valid_partner.peppol_verification_state, 'not_valid_format')  # on peppol but can't receive bis3
         self.assertTrue('account_peppol_warning_partner' in wizard.alerts)
 
@@ -1067,6 +1068,14 @@ class TestPeppolMessage(TestAccountMoveSendCommon, MailCommon):
 
         all_peppol_responses = self.env['account.peppol.response'].search([])
         self.assertEqual(len(all_peppol_responses), 1)
+
+    @mock_lookup_success('0208:0428759497')
+    def test_check_partner_endpoint_unchanged_documents(self):
+        """ Test that we don't write on a partner or its contacts if the supported documents haven't changed. """
+        self.valid_partner.button_account_peppol_check_partner_endpoint()
+        self.assertTrue(self.valid_partner.peppol_supported_documents)
+        with patch.object(self.registry['res.partner'], 'write', side_effect=AssertionError("The partner should not be written again")):
+            self.valid_partner.button_account_peppol_check_partner_endpoint()
 
     def test_belgian_partner_eas_fallback(self):
         """ Test fallback between Belgian EAS 0208 and 9925 when sending via Peppol.

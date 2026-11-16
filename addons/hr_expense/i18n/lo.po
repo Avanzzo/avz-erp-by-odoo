@@ -9,8 +9,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 11.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-30 17:38+0000\n"
-"PO-Revision-Date: 2026-10-21 12:33+0000\n"
+"POT-Creation-Date: 2026-11-06 17:38+0000\n"
+"PO-Revision-Date: 2026-11-08 15:34+0000\n"
 "Last-Translator: Bone NI <bounkirdni@gmail.com>\n"
 "Language-Team: Lao <https://translate.odoo.com/projects/odoo-20/hr_expense/"
 "lo/>\n"
@@ -173,19 +173,31 @@ msgid "<span class=\"o_stat_text\">Payment</span>"
 msgstr "<span class=\"o_stat_text\">ການຊຳລະ</span>"
 
 #. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.product_product_expense_form_view
+msgid ""
+"<span class=\"text-muted\" invisible=\"standard_price\">Per expense</span>"
+msgstr ""
+"<span class=\"text-muted\" invisible=\"standard_price\">ຕໍ່ລາຍຈ່າຍ</span>"
+
+#. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_view_form
+msgid "<span class=\"text-muted\">A bill is sent separately</span>"
+msgstr "<span class=\"text-muted\">ໃບບິນຖືກສົ່ງແຍກຕ່າງຫາກ</span>"
+
+#. module: hr_expense
 #: model_terms:ir.ui.view,arch_db:hr_expense.res_config_settings_view_form
 msgid "<span>@</span>"
 msgstr "<span>@</span>"
 
 #. module: hr_expense
 #: model_terms:ir.ui.view,arch_db:hr_expense.report_expense
-msgid "<span>Employee:</span>"
-msgstr "<span>ພະນັກງານ:</span>"
+msgid "<span>Approver:</span>"
+msgstr "<span>ຜູ້ອະນຸມັດ:</span>"
 
 #. module: hr_expense
 #: model_terms:ir.ui.view,arch_db:hr_expense.report_expense
-msgid "<span>Manager:</span>"
-msgstr "<span>ຜູ້ຈັດການ:</span>"
+msgid "<span>Employee:</span>"
+msgstr "<span>ພະນັກງານ:</span>"
 
 #. module: hr_expense
 #: model_terms:ir.ui.view,arch_db:hr_expense.report_expense
@@ -404,6 +416,11 @@ msgid "Approved"
 msgstr "ອະນຸມັດແລ້ວ"
 
 #. module: hr_expense
+#: model:ir.model.fields,field_description:hr_expense.field_hr_expense__manager_id
+msgid "Approver"
+msgstr "ຜູ້ອະນຸມັດ"
+
+#. module: hr_expense
 #: model_terms:ir.ui.view,arch_db:hr_expense.product_product_expense_form_view
 msgid "Archived"
 msgstr "ເກັບໄວ້ແລ້ວ"
@@ -447,6 +464,11 @@ msgstr "ໄຟລ໌ຄັດຕິດ"
 #: model_terms:ir.ui.view,arch_db:hr_expense.view_employee_tree_inherit_expense
 msgid "Auto-validation"
 msgstr "ກວດສອບອັດຕະໂນມັດ"
+
+#. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_view_form
+msgid "Bill"
+msgstr "ໃບບິນ"
 
 #. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_account_bank_statement_line__bill_paid_by_employee
@@ -518,6 +540,11 @@ msgstr "ການສື່ສານ"
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_view_search
 msgid "Company"
 msgstr "ບໍລິສັດ"
+
+#. module: hr_expense
+#: model:ir.model.fields.selection,name:hr_expense.selection__hr_expense__payment_mode__company_account
+msgid "Company Card"
+msgstr "ບັດບໍລິສັດ"
 
 #. module: hr_expense
 #: model:ir.model,name:hr_expense.model_res_config_settings
@@ -593,7 +620,6 @@ msgstr "ສ້າງເມື່ອ"
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__currency_id
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense_split__currency_id
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense_split_wizard__currency_id
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_view_form
 msgid "Currency"
 msgstr "ເງິນຕາ"
 
@@ -728,15 +754,12 @@ msgstr "ແຕ່ລະລາຍຈ່າຍທີ່ຈ່າຍໂດຍບໍ
 #: model:ir.model,name:hr_expense.model_hr_employee
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__employee_id
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense_split__employee_id
+#: model:ir.model.fields.selection,name:hr_expense.selection__hr_expense__payment_mode__own_account
+#: model:res.groups.privilege,placeholder:hr_expense.res_groups_privilege_expenses
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_view_search
 #: model_terms:ir.ui.view,arch_db:hr_expense.report_expense
 msgid "Employee"
 msgstr "ພະນັກງານ"
-
-#. module: hr_expense
-#: model:ir.model.fields.selection,name:hr_expense.selection__hr_expense__payment_mode__own_account
-msgid "Employee (Through a Purchase Receipt)"
-msgstr "ພະນັກງານ (ຜ່ານໃບຮັບເງິນຊື້)"
 
 #. module: hr_expense
 #: model_terms:ir.ui.view,arch_db:hr_expense.res_config_settings_view_form
@@ -780,7 +803,6 @@ msgstr "ເກີນຂອບເຂດກຳນົດຂອງບໍລິສັ
 
 #. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__existing_bill_id
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_view_form
 msgid "Existing Bill"
 msgstr "ໃບແຈ້ງໜີ້ທີ່ມີຢູ່ແລ້ວ"
 
@@ -1291,6 +1313,11 @@ msgid "Journal Entry Reset to Draft"
 msgstr "ຕັ້ງລາຍການບັນຊີຄືນເປັນຮ່າງແລ້ວ"
 
 #. module: hr_expense
+#: model:ir.model.fields,field_description:hr_expense.field_hr_expense__account_move_state
+msgid "Journal Entry Status"
+msgstr "ສະຖານະການບັນທຶກບັນຊີ"
+
+#. module: hr_expense
 #: model:ir.model,name:hr_expense.model_account_move_line
 msgid "Journal Item"
 msgstr "ລາຍການໃນປຶ້ມບັນຊີ"
@@ -1404,7 +1431,6 @@ msgid "Main Attachment"
 msgstr "ໄຟລ໌ຄັດຕິດຫຼັກ"
 
 #. module: hr_expense
-#: model:ir.model.fields,field_description:hr_expense.field_hr_expense__manager_id
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense_split__manager_id
 msgid "Manager"
 msgstr "ຜູ້ຈັດການ"
@@ -1467,8 +1493,8 @@ msgstr "Mitchell Admin"
 #. module: hr_expense
 #. odoo-python
 #: code:addons/hr_expense/models/ir_actions_report.py:0
-msgid "Multiple Managers"
-msgstr "ຜູ້ຈັດການຫຼາຍຄົນ"
+msgid "Multiple Approvers"
+msgstr "ຜູ້ອະນຸມັດຫຼາຍຄົນ"
 
 #. module: hr_expense
 #. odoo-python
@@ -1537,16 +1563,6 @@ msgid "Next Activity Type"
 msgstr "ປະເພດກິດຈະກຳຕໍ່ໄປ"
 
 #. module: hr_expense
-#: model:res.groups.privilege,placeholder:hr_expense.res_groups_privilege_expenses
-msgid "No"
-msgstr "ບໍ່"
-
-#. module: hr_expense
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_view_form
-msgid "No (Direct Expense)"
-msgstr "ບໍ່ (ລາຍຈ່າຍໂດຍກົງ)"
-
-#. module: hr_expense
 #. odoo-python
 #: code:addons/hr_expense/models/hr_expense.py:0
 msgid "No attachment was provided"
@@ -1574,11 +1590,6 @@ msgstr "ບໍ່ພົບສິນຄ້າລາຍຈ່າຍ. ມາສ້�
 #: code:addons/hr_expense/models/hr_expense.py:0
 msgid "No work contact found for the employee %(name)s, please configure one."
 msgstr "ບໍ່ພົບຂໍ້ມູນຕິດຕໍ່ວຽກສຳລັບພະນັກງານ %(name)s, ກະລຸນາກຳນົດຄ່າ."
-
-#. module: hr_expense
-#: model:ir.model.fields.selection,name:hr_expense.selection__hr_expense__payment_mode__company_account
-msgid "None (Paid by Company)"
-msgstr "ບໍ່ມີ (ຈ່າຍໂດຍບໍລິສັດ)"
 
 #. module: hr_expense
 #. odoo-python
@@ -1733,9 +1744,15 @@ msgid "Paid"
 msgstr "ຈ່າຍແລ້ວ"
 
 #. module: hr_expense
+#: model:ir.model.fields,field_description:hr_expense.field_hr_expense__payment_mode
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_view_search
-msgid "Paid by Company"
-msgstr "ຈ່າຍໂດຍບໍລິສັດ"
+msgid "Paid by"
+msgstr "ຈ່າຍໂດຍ"
+
+#. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_view_search
+msgid "Paid by Company card"
+msgstr "ຈ່າຍດ້ວຍບັດບໍລິສັດ"
 
 #. module: hr_expense
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_view_search
@@ -1948,12 +1965,6 @@ msgid "Reimburse in Payslip"
 msgstr "ເບີກຄືນໃນໃບຈ່າຍເງິນເດືອນ"
 
 #. module: hr_expense
-#: model:ir.model.fields,field_description:hr_expense.field_hr_expense__payment_mode
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_view_search
-msgid "Reimbursement"
-msgstr "ການເບີກຄືນ"
-
-#. module: hr_expense
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_view_form
 msgid "Related"
 msgstr "ທີ່ກ່ຽວຂ້ອງ"
@@ -2027,11 +2038,6 @@ msgid "Scan"
 msgstr "ສະແກນ"
 
 #. module: hr_expense
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_view_form
-msgid "Select Bill..."
-msgstr "ເລືອກໃບແຈ້ງໜີ້..."
-
-#. module: hr_expense
 #. odoo-python
 #: code:addons/hr_expense/models/hr_expense.py:0
 msgid "Select a product to proceed."
@@ -2057,6 +2063,9 @@ msgid ""
 "expense approver), otherwise by the employee's manager. If there is none, "
 "the expense is auto-validated."
 msgstr ""
+"ເລືອກຜູ້ໃຊ້ທີ່ຮັບຜິດຊອບໃນການອະນຸມັດ \"ລາຍຈ່າຍ\" ຂອງພະນັກງານຄົນນີ້.\n"
+"ຖ້າຫາກປະຫວ່າງໄວ້, ການອະນຸມັດຈະດຳເນີນໂດຍຫົວໜ້າພະແນກ (ຖ້າພວກເຂົາເປັນຜູ້ອະນຸມັດລາຍຈ່າຍ), ຖ້າບໍ່ດັ່ງນັ້ນ"
+"ຈະແມ່ນຜູ້ຈັດການຂອງພະນັກງານ. ຖ້າບໍ່ມີໃຜເລີຍ, ລາຍຈ່າຍຈະຖືກກວດສອບອັດຕະໂນມັດ."
 
 #. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__selectable_payment_method_line_ids
@@ -2242,6 +2251,11 @@ msgid "Taxes"
 msgstr "ອາກອນ"
 
 #. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_view_form
+msgid "Taxes included"
+msgstr "ລວມອາກອນແລ້ວ"
+
+#. module: hr_expense
 #: model:res.groups,name:hr_expense.group_hr_expense_team_approver
 msgid "Team Approver"
 msgstr "ຜູ້ອະນຸມັດຂອງທີມ"
@@ -2276,27 +2290,18 @@ msgstr "ປຶ້ມບັນຊີເລີ່ມຕົ້ນຂອງບໍລ
 #. module: hr_expense
 #. odoo-python
 #: code:addons/hr_expense/models/hr_expense.py:0
-msgid "The current user has no related employee. Please, create one."
-msgstr "ຜູ້ໃຊ້ປັດຈຸບັນບໍ່ມີຂໍ້ມູນພະນັກງານທີ່ກ່ຽວຂ້ອງ. ກະລຸນາສ້າງຂໍ້ມູນພະນັກງານ."
+msgid ""
+"The current user has no related employee. Please, create one in %(company)s, "
+"or switch to a company where they have one."
+msgstr ""
+"ຜູ້ໃຊ້ປະຈຸບັນຍັງບໍ່ມີຂໍ້ມູນພະນັກງານທີ່ກ່ຽວຂ້ອງ. ກະລຸນາສ້າງຂຶ້ນໃນ %(company)s, ຫຼື ປ່ຽນໄປຍັງບໍລິສັດທີ່ພວກເຂົາ"
+"ມີຂໍ້ມູນພະນັກງານ."
 
 #. module: hr_expense
 #. odoo-python
 #: code:addons/hr_expense/models/res_company.py:0
 msgid "The employee expense journal must be a purchase journal."
 msgstr "ປຶ້ມບັນຊີລາຍຈ່າຍຂອງພະນັກງານຕ້ອງແມ່ນປຶ້ມບັນຊີຊື້."
-
-#. module: hr_expense
-#. odoo-python
-#: code:addons/hr_expense/models/hr_expense.py:0
-msgid "The existing bill must be set."
-msgstr "ຕ້ອງກຳນົດໃບແຈ້ງໜີ້ທີ່ມີຢູ່ແລ້ວ."
-
-#. module: hr_expense
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_view_form
-msgid ""
-"The expense existing bill is not linked, please reference it before "
-"approving."
-msgstr "ໃບແຈ້ງໜີ້ທີ່ມີຢູ່ຂອງລາຍຈ່າຍຍັງບໍ່ໄດ້ເຊື່ອມໂຍງ, ກະລຸນາອ້າງອີງໃສ່ກ່ອນການອະນຸມັດ."
 
 #. module: hr_expense
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_register
@@ -2440,11 +2445,6 @@ msgid "Total Untaxed Amount In Currency"
 msgstr "ມູນຄ່າລວມບໍ່ລວມອາກອນຕາມສະກຸນເງິນ"
 
 #. module: hr_expense
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_view_form
-msgid "Total With Conversion"
-msgstr "ລວມທັງໝົດພ້ອມການແປງຄ່າ"
-
-#. module: hr_expense
 #: model:ir.model.fields,help:hr_expense.field_hr_expense_split_wizard__total_amount_currency_original
 msgid "Total amount of the original Expense that we are splitting"
 msgstr "ຈຳນວນເງິນລວມຂອງລາຍຈ່າຍຕົ້ນສະບັບທີ່ພວກເຮົາກຳລັງແຍກ"
@@ -2492,6 +2492,7 @@ msgstr "ລາຄາຫົວໜວຍ"
 #. module: hr_expense
 #. odoo-python
 #: code:addons/hr_expense/models/ir_actions_report.py:0
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_view_form
 msgid "Unknown"
 msgstr "ບໍ່ຮູ້ຈັກ"
 
@@ -2581,11 +2582,6 @@ msgstr "ມີການກຳນົດອາກອນໃສ່ສິນຄ້າ
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense_split__wizard_id
 msgid "Wizard"
 msgstr "ໜ້າຕ່າງແນະນຳ"
-
-#. module: hr_expense
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_view_form
-msgid "Yes (Match to Bill)"
-msgstr "ແມ່ນ (ຈັບຄູ່ກັບໃບແຈ້ງໜີ້)"
 
 #. module: hr_expense
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_register
@@ -2796,6 +2792,50 @@ msgstr "ທີ່ມີໝວດໝູ່, ວັນທີ, ຈຳນວນເ�
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_view_form
 msgid "with the same receipt already exists."
 msgstr "ທີ່ມີໃບຮັບເງິນດຽວກັນນີ້ມີຢູ່ແລ້ວ."
+
+#~ msgid "<span>Manager:</span>"
+#~ msgstr "<span>ຜູ້ຈັດການ:</span>"
+
+#~ msgid "Employee (Through a Purchase Receipt)"
+#~ msgstr "ພະນັກງານ (ຜ່ານໃບຮັບເງິນຊື້)"
+
+#~ msgid "Multiple Managers"
+#~ msgstr "ຜູ້ຈັດການຫຼາຍຄົນ"
+
+#~ msgid "No"
+#~ msgstr "ບໍ່"
+
+#~ msgid "No (Direct Expense)"
+#~ msgstr "ບໍ່ (ລາຍຈ່າຍໂດຍກົງ)"
+
+#~ msgid "None (Paid by Company)"
+#~ msgstr "ບໍ່ມີ (ຈ່າຍໂດຍບໍລິສັດ)"
+
+#~ msgid "Paid by Company"
+#~ msgstr "ຈ່າຍໂດຍບໍລິສັດ"
+
+#~ msgid "Reimbursement"
+#~ msgstr "ການເບີກຄືນ"
+
+#~ msgid "Select Bill..."
+#~ msgstr "ເລືອກໃບແຈ້ງໜີ້..."
+
+#~ msgid "The current user has no related employee. Please, create one."
+#~ msgstr "ຜູ້ໃຊ້ປັດຈຸບັນບໍ່ມີຂໍ້ມູນພະນັກງານທີ່ກ່ຽວຂ້ອງ. ກະລຸນາສ້າງຂໍ້ມູນພະນັກງານ."
+
+#~ msgid "The existing bill must be set."
+#~ msgstr "ຕ້ອງກຳນົດໃບແຈ້ງໜີ້ທີ່ມີຢູ່ແລ້ວ."
+
+#~ msgid ""
+#~ "The expense existing bill is not linked, please reference it before "
+#~ "approving."
+#~ msgstr "ໃບແຈ້ງໜີ້ທີ່ມີຢູ່ຂອງລາຍຈ່າຍຍັງບໍ່ໄດ້ເຊື່ອມໂຍງ, ກະລຸນາອ້າງອີງໃສ່ກ່ອນການອະນຸມັດ."
+
+#~ msgid "Total With Conversion"
+#~ msgstr "ລວມທັງໝົດພ້ອມການແປງຄ່າ"
+
+#~ msgid "Yes (Match to Bill)"
+#~ msgstr "ແມ່ນ (ຈັບຄູ່ກັບໃບແຈ້ງໜີ້)"
 
 #~ msgid ""
 #~ "Select the user responsible for approving \"Expenses\" of this employee.\n"

@@ -689,6 +689,146 @@ class TestPointOfSaleFlow(CommonPosTest):
         with self.assertRaisesRegex(ValidationError, "A customer must be set on the order to pay with a customer account."):
             self.env['pos.order'].sync_from_ui([paid_data])
 
+    def test_invoiced_order_resync_does_not_edit_payments(self):
+        """Invoicing a POS order sets its `account_move` but leaves it in the
+        'paid' state, so a retried or duplicated sync still reaches
+        `process_saved_payments`. Replaying the client commands then rewrites the
+        payments of an order that is already posted, which
+        `pos.payment._check_amount` forbids. Re-syncing an invoiced order must be
+        a no-op instead of raising.
+        """
+        self.pos_config_usd.open_ui()
+        pos_session = self.pos_config_usd.current_session_id
+        order_data = {
+            'amount_paid': 450,
+            'amount_return': 0,
+            'amount_tax': 0,
+            'amount_total': 450,
+            'date_order': fields.Datetime.to_string(fields.Datetime.now()),
+            'fiscal_position_id': False,
+            'pricelist_id': self.pos_config_usd.pricelist_id.id,
+            'lines': [[0, 0, {
+                'discount': 0,
+                'id': 44,
+                'price_unit': 450.0,
+                'product_id': self.product.id,
+                'price_subtotal': 450.0,
+                'price_subtotal_incl': 450.0,
+                'tax_ids': [[6, False, []]],
+                'qty': 1,
+                'uuid': 'line-52346-123-1234',
+            }]],
+            'name': 'Order 52346-123-1234',
+            'partner_id': self.partner.id,
+            'session_id': pos_session.id,
+            'payment_ids': [[0, 0, {
+                'amount': 450,
+                'name': fields.Datetime.to_string(fields.Datetime.now()),
+                'payment_method_id': self.bank_payment_method.id,
+                'uuid': 'pay-bank-52346-123-1234',
+            }]],
+            'to_invoice': True,
+            'uuid': '52346-123-1234',
+            'user_id': self.env.uid,
+        }
+
+        self.env['pos.order'].sync_from_ui([copy.deepcopy(order_data)])
+        order = self.env['pos.order'].search([('uuid', '=', '52346-123-1234')])
+        invoice = order.account_move
+        self.assertTrue(invoice, "The order should have been invoiced.")
+        # Invoicing leaves the order in 'paid': the re-sync guard of
+        # `sync_from_ui` cannot tell an invoiced order apart by `state` alone.
+        self.assertEqual(order.state, 'paid')
+        self.assertEqual(order.nb_print, 0)
+        payment = order.payment_ids
+        self.assertEqual(len(payment), 1)
+
+        # The exact same invoiced order reaches the server again, replaying the
+        # create commands of its line and its payment.
+        self.env['pos.order'].sync_from_ui([copy.deepcopy(order_data)])
+
+        self.assertEqual(order.account_move, invoice, "Re-syncing must not create a second invoice.")
+        self.assertEqual(len(order.lines), 1, "Re-syncing must not duplicate the order lines.")
+        self.assertRecordValues(order.payment_ids, [
+            {'id': payment.id, 'amount': 450.0, 'payment_method_id': self.bank_payment_method.id, 'is_change': False},
+        ])
+
+    def _get_sync_order_data(self, uuid, state, lines, payments, amount_total, amount_paid=0, amount_return=0):
+        return {
+            'amount_paid': amount_paid,
+            'amount_return': amount_return,
+            'amount_tax': 0,
+            'amount_total': amount_total,
+            'date_order': fields.Datetime.to_string(fields.Datetime.now()),
+            'fiscal_position_id': False,
+            'pricelist_id': self.pos_config_usd.pricelist_id.id,
+            'lines': [[0, 0, {
+                'price_unit': price,
+                'product_id': self.product.id,
+                'price_subtotal': price,
+                'price_subtotal_incl': price,
+                'tax_ids': [[6, False, []]],
+                'qty': 1,
+                'discount': 0,
+                'uuid': line_uuid,
+            }] for line_uuid, price in lines],
+            'name': f'Order {uuid}',
+            'session_id': self.pos_config_usd.current_session_id.id,
+            'payment_ids': [[0, 0, {
+                'amount': amount,
+                'name': fields.Datetime.to_string(fields.Datetime.now()),
+                'payment_method_id': self.cash_payment_method.id,
+                'uuid': payment_uuid,
+            }] for payment_uuid, amount in payments],
+            'uuid': uuid,
+            'user_id': self.env.uid,
+            'state': state,
+        }
+
+    def test_paid_order_with_lines_added_by_another_device(self):
+        """A device pays an order (synced as draft) while another device added a line to it:
+        the payment is kept but the order stays draft until the difference is settled."""
+        self.pos_config_usd.open_ui()
+        self.env['pos.order'].sync_from_ui([self._get_sync_order_data('sync-1', 'draft', [('sync-1-l1', 450)], [], 450)])
+        # Another device adds a line
+        self.env['pos.order'].sync_from_ui([self._get_sync_order_data('sync-1', 'draft', [('sync-1-l2', 50)], [], 500)])
+        # The first device pays what it saw, without knowing the new line
+        self.env['pos.order'].sync_from_ui([self._get_sync_order_data('sync-1', 'paid', [], [('sync-1-p1', 450)], 450, 450)])
+        order = self.env['pos.order'].search([('uuid', '=', 'sync-1')])
+        self.assertEqual(order.state, 'draft')
+        self.assertEqual(len(order.lines), 2)
+        self.assertEqual(order.payment_ids.mapped('amount'), [450])
+        self.assertTrue(
+            order.message_ids.filtered(lambda m: 'changed on another device' in m.body),
+            "The chatter should explain why the paid order stays draft",
+        )
+
+        # The device loaded the new line but still paid the old amount
+        self.env['pos.order'].sync_from_ui([self._get_sync_order_data('sync-1', 'paid', [], [], 500, 450)])
+        self.assertEqual(order.state, 'draft')
+
+    def test_paid_order_with_change_synced_as_draft_before(self):
+        """An order synced as draft then paid in cash with change must be paid."""
+        self.pos_config_usd.open_ui()
+        self.env['pos.order'].sync_from_ui([self._get_sync_order_data('sync-2', 'draft', [('sync-2-l1', 450)], [], 450)])
+        self.env['pos.order'].sync_from_ui([self._get_sync_order_data('sync-2', 'paid', [], [('sync-2-p1', 500)], 450, 500, -50)])
+        order = self.env['pos.order'].search([('uuid', '=', 'sync-2')])
+        self.assertEqual(order.state, 'paid')
+        self.assertEqual(sorted(order.payment_ids.mapped('amount')), [-50, 500])
+
+    def test_paid_order_with_cash_rounding_synced_as_draft_before(self):
+        """An order synced as draft then paid in cash with a rounded amount must be paid."""
+        self.pos_config_usd.write({
+            'rounding_method': self.account_cash_rounding_half.id,
+            'cash_rounding': True,
+            'only_round_cash_method': True,
+        })
+        self.pos_config_usd.open_ui()
+        self.env['pos.order'].sync_from_ui([self._get_sync_order_data('sync-3', 'draft', [('sync-3-l1', 10.02)], [], 10.02)])
+        self.env['pos.order'].sync_from_ui([self._get_sync_order_data('sync-3', 'paid', [], [('sync-3-p1', 10.00)], 10.02, 10.00)])
+        order = self.env['pos.order'].search([('uuid', '=', 'sync-3')])
+        self.assertEqual(order.state, 'paid')
+
     def test_refund_qty_refund_cancel(self):
         """
         Test the refunded qty of an order, when the refund order has been cancelled

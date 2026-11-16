@@ -1,4 +1,3 @@
-import json
 import logging
 import re
 from collections import defaultdict
@@ -903,44 +902,44 @@ class AccountMoveLine(models.Model):
 
         date_from = self.env.context.get('date_from')
         date_to = self.env.context.get('date_to')
-        historical, average, current = self.env['res.currency']._get_parsed_rates(self.env.companies - self.env.company, date_from, date_to)
+        rates, current = self.env['res.currency']._get_parsed_rates(
+            self.env.companies - self.env.company, date_from, date_to, current_date=self.env.context.get('cta_date_to'),
+        )
 
         raw_rates_alias = table._make_alias(f'raw_{currency_translation}')
-        raw_rates_table = SQL(
-            """(
-                SELECT %(historical)s::jsonb AS historical,
-                       %(average)s::jsonb AS average,
-                       %(current)s::jsonb AS current
-            )""",
-            historical=json.dumps(historical),
-            average=json.dumps(average),
-            current=json.dumps(current),
-        )
-        cta_alias = table._make_alias(currency_translation)
-        if currency_translation == 'cta':
-            conversion_table = SQL(
-                """(
-                    SELECT CASE WHEN %(base_line_account_type)s = 'equity' THEN (%(historical)s->>(%(base_line_company)s::text))::jsonb->>(%(base_line_date)s::text)
-                                WHEN %(base_line_account_type)s LIKE ANY (ARRAY['income%%', 'expense%%', 'equity_unaffected']) THEN %(average)s->>(%(base_line_company)s::text)
-                                ELSE %(current)s->>(%(base_line_company)s::text)
-                           END::numeric AS rate
-                )""",
-                base_line_date=table.date,
-                base_line_company=table.company_id,
-                base_line_account_type=table.account_id.account_type,
-                historical=raw_rates_alias.historical,
-                average=raw_rates_alias.average,
-                current=raw_rates_alias.current,
-            )
-        else:
-            conversion_table = SQL(
-                "(SELECT (%(current)s->>(%(base_line_company)s::text))::numeric AS rate)",
-                base_line_company=table.company_id,
-                current=raw_rates_alias.current,
-            )
+        raw_rates_table = SQL("(SELECT %s::jsonb AS current)", current)
         table._query.add_join(kind='JOIN', alias=raw_rates_alias, table=raw_rates_table, condition=SQL("TRUE"))
-        table._query.add_join(kind='LEFT JOIN LATERAL', alias=cta_alias, table=conversion_table, condition=SQL("TRUE"))
-        return SQL("COALESCE(%s, 1)", cta_alias.rate)
+        current_rate = SQL("(%s->>(%s::text))::numeric", raw_rates_alias.current, table.company_id)
+        if currency_translation != 'cta':
+            return SQL("COALESCE(%s, 1)", current_rate)
+
+        cta_alias = table._make_alias(currency_translation)
+        cta_table = SQL(
+            """(
+                SELECT period.company_id,
+                       period.date_from + rate.index::int - 1 AS date,
+                       rate.value AS historical,
+                       period.average,
+                       period.retained
+                  FROM jsonb_to_recordset(%s::jsonb) AS period(company_id int, date_from date, average numeric, retained numeric, historical numeric[]),
+                       unnest(period.historical) WITH ORDINALITY AS rate(value, index)
+            )""",
+            rates,
+        )
+        cta_condition = SQL("%s = %s AND %s = %s", cta_alias.company_id, table.company_id, cta_alias.date, table.date)
+        table._query.add_join(kind='LEFT JOIN', alias=cta_alias, table=cta_table, condition=cta_condition)
+        return SQL(
+            """COALESCE(CASE
+                   WHEN %(account_type)s = 'equity' THEN %(historical)s
+                   WHEN %(account_type)s = 'equity_retained' THEN %(retained)s
+                   WHEN %(account_type)s LIKE ANY (ARRAY['income%%', 'expense%%', 'equity_unaffected']) THEN %(average)s
+               END, %(current)s, 1)""",
+            account_type=table.account_id.account_type,
+            historical=cta_alias.historical,
+            retained=cta_alias.retained,
+            average=cta_alias.average,
+            current=current_rate,
+        )
 
     def _compute_sql_debit_converted(self, table):
         return SQL("(%s * %s)", table.consolidation_rate, table.debit)
@@ -951,7 +950,7 @@ class AccountMoveLine(models.Model):
     def _compute_sql_balance_converted(self, table):
         return SQL("(%s * %s)", table.consolidation_rate, table.balance)
 
-    @api.depends_context('allowed_company_ids', 'currency_translation')
+    @api.depends_context('allowed_company_ids', 'currency_translation', 'date_from', 'date_to', 'cta_date_to')
     def _compute_consolidation_rate(self):
         line2rate = {}
         if len(self.env.companies.currency_id) > 1:
@@ -2220,11 +2219,18 @@ class AccountMoveLine(models.Model):
         hashed_moves = self.move_id.filtered('inalterable_hash')
         violated_fields = set(vals) & inalterable_fields
         if hashed_moves and violated_fields:
+            if hashed_moves.company_id == self.env.company:
+                entries = '\n'.join(hashed_moves.mapped('name'))
+            else:
+                entries = '\n'.join(
+                    f"{company.name}: {', '.join(moves.mapped('name'))}"
+                    for company, moves in hashed_moves.grouped('company_id').items()
+                )
             raise UserError(_(
                 "You cannot edit the following fields: %(fields)s.\n"
                 "The following entries are already hashed:\n%(entries)s",
                 fields=[f['string'] for f in self.fields_get(violated_fields).values()],
-                entries='\n'.join(hashed_moves.mapped('name')),
+                entries=entries,
             ))
 
         line_to_write = self
@@ -3930,7 +3936,7 @@ class AccountMoveLine(models.Model):
         Intended to be overriden in localization.
         """
         self.ensure_one()
-        return self.move_id.state == 'posted'
+        return self.move_id.state == 'posted' or self.move_id.payment_state == 'invoicing_legacy'
 
     def _get_aml_vals(self, hide_taxes):
         self.ensure_one()
@@ -4057,7 +4063,7 @@ class AccountMoveLine(models.Model):
         """Return a formatted list of dicts representing the child lines of the given section or subsection."""
         self.ensure_one()
 
-        children_lines = self.move_id.invoice_line_ids.filtered(lambda l: self in {l.parent_id, l.parent_id.parent_id})
+        children_lines = self.move_id.invoice_line_ids.filtered(lambda l: self in {l.parent_id, l.parent_id.parent_id}).sorted('sequence')
         subsection_lines = children_lines.filtered(lambda l: l.display_type == 'line_subsection')
         direct_children_lines = children_lines.filtered(lambda l: l.parent_id == self and l.display_type != 'line_subsection')
 

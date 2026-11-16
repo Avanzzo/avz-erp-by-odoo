@@ -6,14 +6,12 @@ from collections import defaultdict
 from datetime import timedelta, datetime, time, UTC
 from random import shuffle
 
-from lxml import html
-
 from odoo import api, fields, models, tools, SUPERUSER_ID, _
 from odoo.fields import Command, Date, Domain
 from odoo.addons.rating.models import rating_data
 from odoo.addons.html_editor.tools import handle_history_divergence
 from odoo.exceptions import UserError, ValidationError, AccessError
-from odoo.tools import format_list, SQL, LazyTranslate, html_sanitize
+from odoo.tools import format_list, SQL, LazyTranslate
 from odoo.addons.project.controllers.project_sharing_chatter import ProjectSharingChatter
 from odoo.addons.mail.tools.discuss import Store
 
@@ -914,7 +912,15 @@ class ProjectTask(models.Model):
                 if copy_from_template:
                     current_task = current_task.with_context(active_test=True)
                 child_ids = current_task.child_ids
-                vals['child_ids'] = [Command.create(child_id.copy_data(default)[0]) for child_id in child_ids.filtered(lambda c: c.active)]
+                default_without_project = {key: value for key, value in default.items() if key != 'project_id'}
+                vals['child_ids'] = [
+                    Command.create(child.copy_data(
+                        default_without_project
+                        if child.project_id and child.project_id != current_task.project_id
+                        else default,
+                    )[0])
+                    for child in child_ids.filtered('active')
+                ]
             if not has_default_users and vals['user_ids']:
                 task_active_users = task.user_ids & active_users
                 vals['user_ids'] = [Command.set(task_active_users.ids)]
@@ -1818,23 +1824,8 @@ class ProjectTask(models.Model):
            and message.subtype_id == self._creation_subtype()
            and self.partner_id == message.author_id
            and message.message_type == 'email'
-           and message.body  # TDE FIXME: use html empty
         ):
-            # Remove the signature from the email body
-            source_html = message.body
-            doc = html.fromstring(source_html)
-
-            signature_xpath = (
-                '//*[@data-o-mail-quote="1"] | '
-                '//span[normalize-space(.) = "--"]'
-            )
-
-            for element in doc.xpath(signature_xpath):
-                element.getparent().remove(element)
-
-            cleaned_html = html.tostring(doc, encoding='unicode').strip()
-            self.description = html_sanitize(cleaned_html)
-
+            self.description = message.body
         return super()._message_post_after_hook(message)
 
     def _get_projects_to_make_billable_domain(self, additional_domain=None):

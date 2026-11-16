@@ -21,13 +21,14 @@
 # "Malaz Siddig Elsayed Abuidris (msea)" <msea@odoo.com>, 2025.
 # "Deniz Guvener Unal (degu)" <degu@odoo.com>, 2026.
 # setenayp <seat@odoo.com>, 2026.
+# OpenAI <noreply-mt-openai@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-28 17:42+0000\n"
-"PO-Revision-Date: 2026-10-30 11:33+0000\n"
-"Last-Translator: setenayp <seat@odoo.com>\n"
+"POT-Creation-Date: 2026-11-06 17:39+0000\n"
+"PO-Revision-Date: 2026-11-09 09:38+0000\n"
+"Last-Translator: OpenAI <noreply-mt-openai@weblate.org>\n"
 "Language-Team: Turkish <https://translate.odoo.com/projects/odoo-20/"
 "crm_iap_mine/tr/>\n"
 "Language: tr\n"
@@ -58,19 +59,18 @@ msgstr "%s fırsat"
 msgid ""
 "<div style=\"margin: 0px; padding: 0px;\">\n"
 "    <p>Dear,</p>\n"
-"    <p>There are no more credits on your IAP Lead Generation account.<br/>\n"
+"    <p>There are no more credits on your IAP Lead Generation account.<br>\n"
 "    You can charge your IAP Lead Generation account in the settings of the "
-"CRM app.<br/></p>\n"
+"CRM app.<br></p>\n"
 "    <p>Best regards,</p>\n"
 "    <p>Odoo S.A.</p>\n"
 "</div>"
 msgstr ""
 "<div style=\"margin: 0px; padding: 0px;\">\n"
-"    <p>Sayın,</p>\n"
-"    <p>IAP Lead Generation (Müşteri Adayı Oluşturma) hesabınızda kredi "
-"kalmadı.<br/>\n"
-"    IAP Potansiyel Müşteri Oluşturma hesabınıza CRM uygulamasının "
-"ayarlarından yükleme yapabilirsiniz.<br/></p>\n"
+"    <p>Sayın İlgili,</p>\n"
+"    <p>IAP Müşteri Adayı Oluşturma hesabınızda hiç alacak kalmadı.<br>\n"
+"    CRM uygulamasının ayarlarından IAP Müşteri Adayı Oluşturma hesabınıza "
+"yükleme yapabilirsiniz.<br></p>\n"
 "    <p>Saygılarımızla,</p>\n"
 "    <p>Odoo S.A.</p>\n"
 "</div>"
@@ -109,14 +109,15 @@ msgid ""
 ">\n"
 "                    <b>Address</b>"
 msgstr ""
-"<i class=\"oi oi-fw oi-filled me-2 text-primary\" data-"
-"icon=\"contact_page\"/>\n"
+"<i class=\"oi oi-fw oi-filled me-2 text-primary\" data-icon=\"contact_page\"/"
+">\n"
 "                    <b>Adres</b>"
 
 #. module: crm_iap_mine
 #: model_terms:ir.ui.view,arch_db:crm_iap_mine.crm_iap_lead_mining_request_view_form
 msgid "<span class=\"fw-normal o_stat_text o_translate_inline\">Leads</span>"
-msgstr "<span class=\"fw-normal o_stat_text o_translate_inline\">Adaylar</span>"
+msgstr ""
+"<span class=\"fw-normal o_stat_text o_translate_inline\">Adaylar</span>"
 
 #. module: crm_iap_mine
 #: model_terms:ir.ui.view,arch_db:crm_iap_mine.crm_iap_lead_mining_request_view_form
@@ -220,7 +221,7 @@ msgstr "CRM IAP Aday Sektörü"
 #. module: crm_iap_mine
 #: model:ir.model,name:crm_iap_mine.model_crm_iap_lead_industry_division
 msgid "CRM IAP Lead Industry Division"
-msgstr ""
+msgstr "CRM IAP Müşteri Adayı Sektör Bölümü"
 
 #. module: crm_iap_mine
 #: model:ir.model,name:crm_iap_mine.model_crm_iap_lead_mining_request
@@ -324,7 +325,7 @@ msgstr "Varsayılan Etiketler"
 #. module: crm_iap_mine
 #: model:crm.iap.lead.industry,name:crm_iap_mine.crm_iap_mine_industry_60
 msgid "Depository Institutions"
-msgstr ""
+msgstr "Mevduat Kuruluşları"
 
 #. module: crm_iap_mine
 #: model:ir.model.fields,field_description:crm_iap_mine.field_crm_iap_lead_helpers__display_name
@@ -340,7 +341,7 @@ msgstr "İsim Göster"
 #. module: crm_iap_mine
 #: model:ir.model.fields,field_description:crm_iap_mine.field_crm_iap_lead_industry_division__code
 msgid "Division Code"
-msgstr ""
+msgstr "Bölüm Kodu"
 
 #. module: crm_iap_mine
 #: model:ir.model.fields,field_description:crm_iap_mine.field_crm_iap_lead_industry_division__name
@@ -351,7 +352,7 @@ msgstr "Bölüm Adı"
 #: model:ir.model.fields,help:crm_iap_mine.field_crm_iap_lead_industry_division__code
 msgid ""
 "Division code as per SIC indicating the higher-level industry classification."
-msgstr ""
+msgstr "Üst düzey sektör sınıflandırmasını gösteren SIC uyarınca bölüm kodu."
 
 #. module: crm_iap_mine
 #: model:ir.model.fields.selection,name:crm_iap_mine.selection__crm_iap_lead_mining_request__state__done
@@ -592,7 +593,7 @@ msgstr "Endüstri adı zaten var!"
 #. module: crm_iap_mine
 #: model:ir.model.fields,help:crm_iap_mine.field_crm_iap_lead_industry__sic_group
 msgid "Industry's Major Group Code as per SIC"
-msgstr ""
+msgstr "SIC uyarınca Sektörün Ana Grup Kodu"
 
 #. module: crm_iap_mine
 #: model:crm.iap.lead.role,name:crm_iap_mine.crm_iap_mine_role_11
@@ -617,12 +618,12 @@ msgstr "Sigorta Acenteleri ve Komisyoncuları"
 #. module: crm_iap_mine
 #: model:crm.iap.lead.industry,name:crm_iap_mine.crm_iap_mine_industry_63
 msgid "Insurance Carriers"
-msgstr ""
+msgstr "Sigorta Şirketleri"
 
 #. module: crm_iap_mine
 #: model:crm.iap.lead.industry,name:crm_iap_mine.crm_iap_mine_industry_92
 msgid "Justice and Public Safety"
-msgstr ""
+msgstr "Adalet ve Kamu Güvenliği"
 
 #. module: crm_iap_mine
 #: model:ir.model.fields,field_description:crm_iap_mine.field_crm_iap_lead_helpers__write_uid
@@ -799,7 +800,7 @@ msgstr "Sonuç Yok"
 #. module: crm_iap_mine
 #: model:crm.iap.lead.industry,name:crm_iap_mine.crm_iap_mine_industry_61
 msgid "Non-Depository Credit"
-msgstr ""
+msgstr "Mevduat Dışı Alacak"
 
 #. module: crm_iap_mine
 #: model:crm.iap.lead.industry,name:crm_iap_mine.crm_iap_mine_industry_51
@@ -893,7 +894,7 @@ msgstr "Eyaletleri seçin..."
 #. module: crm_iap_mine
 #: model:crm.iap.lead.industry,name:crm_iap_mine.crm_iap_mine_industry_46
 msgid "Pipelines, Except Natural Gas"
-msgstr ""
+msgstr "Boru Hatları, Doğal Gaz Hariç"
 
 #. module: crm_iap_mine
 #: model:crm.iap.lead.role,name:crm_iap_mine.crm_iap_mine_role_16
@@ -1010,12 +1011,12 @@ msgstr "Kauçuk ve Plastik"
 #. module: crm_iap_mine
 #: model:ir.model.fields,help:crm_iap_mine.field_crm_iap_lead_industry__division_id
 msgid "SIC Division code to which Major Group belongs."
-msgstr ""
+msgstr "Ana Grubun ait olduğu SIC Bölüm kodu."
 
 #. module: crm_iap_mine
 #: model:ir.model.fields,field_description:crm_iap_mine.field_crm_iap_lead_industry__sic_group
 msgid "SIC Group"
-msgstr ""
+msgstr "SIC Grubu"
 
 #. module: crm_iap_mine
 #: model:crm.iap.lead.role,name:crm_iap_mine.crm_iap_mine_role_22
@@ -1043,7 +1044,7 @@ msgstr "Sektör"
 #. module: crm_iap_mine
 #: model:crm.iap.lead.industry,name:crm_iap_mine.crm_iap_mine_industry_62
 msgid "Securities and Commodity Services"
-msgstr ""
+msgstr "Menkul Kıymetler ve Emtia Hizmetleri"
 
 #. module: crm_iap_mine
 #: model:ir.model.fields,field_description:crm_iap_mine.field_crm_iap_lead_industry__sequence
@@ -1193,3 +1194,24 @@ msgstr "yönetici"
 #: model_terms:ir.ui.view,arch_db:crm_iap_mine.crm_iap_lead_mining_request_view_form
 msgid "to"
 msgstr "den"
+
+#~ msgid ""
+#~ "<div style=\"margin: 0px; padding: 0px;\">\n"
+#~ "    <p>Dear,</p>\n"
+#~ "    <p>There are no more credits on your IAP Lead Generation account.<br/"
+#~ ">\n"
+#~ "    You can charge your IAP Lead Generation account in the settings of "
+#~ "the CRM app.<br/></p>\n"
+#~ "    <p>Best regards,</p>\n"
+#~ "    <p>Odoo S.A.</p>\n"
+#~ "</div>"
+#~ msgstr ""
+#~ "<div style=\"margin: 0px; padding: 0px;\">\n"
+#~ "    <p>Sayın,</p>\n"
+#~ "    <p>IAP Lead Generation (Müşteri Adayı Oluşturma) hesabınızda kredi "
+#~ "kalmadı.<br/>\n"
+#~ "    IAP Potansiyel Müşteri Oluşturma hesabınıza CRM uygulamasının "
+#~ "ayarlarından yükleme yapabilirsiniz.<br/></p>\n"
+#~ "    <p>Saygılarımızla,</p>\n"
+#~ "    <p>Odoo S.A.</p>\n"
+#~ "</div>"
