@@ -1,8 +1,6 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from unittest.mock import patch
-from freezegun import freeze_time
-from datetime import date
 
 from lxml import html
 
@@ -368,19 +366,35 @@ class WithContext(HttpCase):
         r = self.url_open(self.page.url)
         self.assertEqual(r.status_code, 404, "Deactivated users should be logged out before serving fallback pages")
 
-    def test_unpublished_page_no_cache(self):
-        """Ensure that a previously-published page that is now unpublished will not be cached."""
+    def test_hidden_page_cache_invalidation(self):
+        """Ensure that a cached page is not served anymore once it is hidden"""
         self.authenticate(None, None)
 
-        with freeze_time(date(2025, 12, 30)):
-            r = self.url_open(self.page.url)
+        r = self.url_open(self.page.url)
         self.assertEqual(r.status_code, 200, "Restricted users should see the published page")
 
         self.page.write({'is_published': False})
-
-        with freeze_time(date(2025, 12, 31)):
-            r = self.url_open(self.page.url)
+        r = self.url_open(self.page.url)
         self.assertEqual(r.status_code, 404, "Restricted users should see a 404 as the page is unpublished")
+
+        self.page.write({'is_published': True})
+        r = self.url_open(self.page.url)
+        self.assertEqual(r.status_code, 200, "Restricted users should see the republished page")
+
+    def test_page_host_indexability(self):
+        """Cached HTML must preserve the current host's robots directive."""
+        self.env.ref('base.default_website').domain = 'https://example.com'
+        self.authenticate(None, None)
+
+        for hosts in [('preview.example.com', 'example.com'), ('example.com', 'preview.example.com')]:
+            with self.subTest(hosts=hosts):
+                self.env.transaction.invalidate_ormcache()
+                # Check indexability on both hosts, regardless of request order.
+                for host in hosts:
+                    response = self.url_open(self.page.url, headers={'Host': host})
+                    self.assertEqual(response.status_code, 200)
+                    noindex = html.fromstring(response.content).xpath('//meta[@name="robots"]/@content')
+                    self.assertEqual(noindex, ['noindex'] if host == 'preview.example.com' else [], host)
 
     @mute_logger('odoo.addons.rpc.controllers.xmlrpc')
     def test_search(self):

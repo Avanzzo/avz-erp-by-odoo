@@ -6,7 +6,7 @@ from markupsafe import Markup
 from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
 from odoo.fields import Command, Domain
-from odoo.tools import float_compare, float_is_zero, format_date, groupby
+from odoo.tools import float_compare, float_is_zero, float_round, format_date, groupby
 
 
 class SaleOrderLine(models.Model):
@@ -231,7 +231,7 @@ class SaleOrderLine(models.Model):
     discount = fields.Float(
         string="Discount (%)",
         compute="_compute_discount",
-        digits="Discount",
+        min_display_digits="Discount",
         store=True,
         readonly=False,
         precompute=True,
@@ -324,6 +324,8 @@ class SaleOrderLine(models.Model):
     analytic_line_ids = fields.One2many(
         comodel_name="account.analytic.line", inverse_name="so_line", string="Analytic lines"
     )
+    # precomputed as the amounts, which are precomputed, read it to prepare the tax base lines
+    analytic_distribution = fields.Json(compute="_compute_analytic_distribution", store=True, precompute=True)
 
     invoice_lines = fields.Many2many(
         comodel_name="account.move.line",
@@ -1012,6 +1014,7 @@ class SaleOrderLine(models.Model):
     @api.depends("product_id", "product_uom_id", "product_uom_qty")
     def _compute_discount(self):
         discount_enabled = self.env["product.pricelist.item"]._is_discount_feature_enabled()
+        discount_precision = self.env["decimal.precision"].precision_get("Discount")
         for line in self:
             if not line.product_id or line.display_type:
                 line.discount = 0.0
@@ -1040,7 +1043,7 @@ class SaleOrderLine(models.Model):
                 if (discount > 0 and base_price > 0) or (discount < 0 and base_price < 0):
                     # only show negative discounts if price is negative
                     # otherwise it's a surcharge which shouldn't be shown to the customer
-                    line.discount = discount
+                    line.discount = float_round(discount, precision_digits=discount_precision)
 
     def _prepare_base_line_for_taxes_computation(self, **kwargs):
         """Convert the current record to a dictionary in order to use the generic taxes computation
@@ -1528,7 +1531,7 @@ class SaleOrderLine(models.Model):
                 price_subtotal = 0.0
                 uom_qty_to_consider = (
                     line.qty_delivered
-                    if line.product_id.invoice_policy == "delivery"
+                    if line.invoice_policy == "delivery"
                     else line.product_uom_qty
                 )
                 price_reduce = line.price_unit * (1 - (line.discount or 0.0) / 100.0)
@@ -1606,20 +1609,21 @@ class SaleOrderLine(models.Model):
         ones currently out of sync, or that were out of sync as of `date` but have since been
         settled (nothing left to accrue today). Extended by `sale_stock`, which can also detect
         a delivery-side mismatch via stock moves.
+        Lines with an accrual entry still active as of `date` are left out,
+        their mismatch was already accounted for.
         """
         domain = Domain([
             ("state", "=", "sale"),
             ("display_type", "=", False),
             ("is_downpayment", "=", False),
             ("product_id.type", "!=", "combo"),
-            # Lines with an accrual entry that's still standing (posted, not yet reversed or
-            # cancelled) already have their accrual accounted for: excluded until it isn't.
-            (
-                "accrual_move_ids",
-                "not any",
-                [("state", "=", "posted"), ("reversal_move_ids", "=", False)],
-            ),
         ])
+        accrual_entry_date = date or fields.Date.to_date(self.env.context.get("accrual_entry_date")) or fields.Date.context_today(self)
+        domain &= Domain(
+            "accrual_move_ids",
+            "any" if self.env.context.get("already_accrued") else "not any",
+            self.env["account.move"]._get_active_accrual_domain(accrual_entry_date),
+        )
         if date:
             domain &= Domain.OR([
                 [("qty_to_invoice", "!=", 0)],
@@ -1652,7 +1656,8 @@ class SaleOrderLine(models.Model):
         if not date:
             date = fields.Date.to_date(self.env.context.get("accrual_entry_date"))
         accrual_entry_date = date or fields.Date.context_today(self)
-        domain = self._get_accrual_domain(accrual_entry_date)
+        # The date is also put in the context for the stock overrides using no date in _get_accrual_domain
+        domain = self.with_context(accrual_entry_date=fields.Date.to_string(accrual_entry_date))._get_accrual_domain(accrual_entry_date)
         if extra_domain:
             domain &= extra_domain
         order_lines = self.env["sale.order.line"].search(domain)

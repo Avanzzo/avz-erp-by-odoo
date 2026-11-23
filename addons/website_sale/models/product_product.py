@@ -7,6 +7,7 @@ from odoo import Command, api, fields, models
 from odoo.exceptions import ValidationError
 from odoo.fields import Domain
 from odoo.http import request
+from odoo.tools.urls import urljoin as url_join
 
 
 class ProductProduct(models.Model):
@@ -220,11 +221,12 @@ class ProductProduct(models.Model):
                     else "https://schema.org/InStock"
                 )
 
+        product_url = url_join(base_url, self.env['ir.http']._url_for(self.website_url))
         vals = {
             "@type": "Product",
-            "@id": f"{base_url}{self.website_url}/#product-{self.id}",
+            "@id": f"{product_url}/#product-{self.id}",
             "name": self.with_context(display_default_code=False).display_name,
-            "url": f"{base_url}{self.website_url}",
+            "url": product_url,
             "image": f"{base_url}{self._get_image_1920_url()}",
         }
         if offer:
@@ -316,7 +318,11 @@ class ProductProduct(models.Model):
             "image_1920": image,
             "product_tmpl_id": self.product_tmpl_id.id,
             "attribute_value_ids": [Command.set(self.product_template_attribute_value_ids.ids)],
-            "sequence": self.variant_image_ids.sorted("sequence")[:1].sequence - 1,
+            # Insert the new image before the first variant image if it exists, otherwise after the
+            # first template image (to avoid overriding it).
+            "sequence": min(self.variant_image_ids.mapped("sequence")) - 1
+            if self.variant_image_ids
+            else min(self.product_template_image_ids.mapped("sequence"), default=0) + 1,
         })
 
     def _set_main_image_from_extra_images(self):

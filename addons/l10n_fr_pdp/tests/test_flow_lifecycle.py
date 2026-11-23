@@ -483,6 +483,16 @@ class TestPdpReportsFlowLifecycle(TestL10nFrPdpCommon):
         flow = moves.mapped('l10n_fr_pdp_last_flow_id')
 
         self.assertEqual(len(flow), 1)
+        actual_xml = self._build_flow_xml(flow)
+        # Adapted reserve report for invoices without deferred billing dates.
+        expected_xml = self._load_expected_report_xml(
+            'transaction_report_without_billing_period.xml',
+        )
+        self._assert_identification_nodes(actual_xml, expected_xml)
+        self.assertXmlTreeEqual(
+            self._ignore_runtime_report_values(actual_xml),
+            self._ignore_runtime_report_values(expected_xml),
+        )
 
     def test_b2c_invoice_creates_transaction_flow_payload(self):
         invoice = self._create_reporting_invoice(
@@ -525,6 +535,32 @@ class TestPdpReportsFlowLifecycle(TestL10nFrPdpCommon):
         transaction = xml.find('./TransactionsReport/Transactions')
         self.assertEqual(transaction.findtext('CategoryCode'), 'TPS1')
         self.assertEqual(transaction.findtext('TaxDueDateTypeCode'), '5')
+
+    def test_invoice_exempt_under_cgi_261_is_not_reported(self):
+        exempt_tax = self._get_tax_on_payment_20().copy({
+            'name': 'Exempt letting',
+            'amount': 0,
+            'ubl_cii_tax_category_code': 'E',
+            'ubl_cii_tax_exemption_reason_code': 'VATEX-EU-135-1',
+        })
+        invoice = self._create_reporting_invoice(partner=self.b2c_customer, tax_ids=exempt_tax)
+        self.assertFalse(invoice.l10n_fr_pdp_flow_10_report_type)
+        self.assertFalse(invoice.l10n_fr_pdp_last_flow_id)
+
+        export_tax = exempt_tax.copy({'ubl_cii_tax_category_code': 'G', 'ubl_cii_tax_exemption_reason_code': False})
+        invoice = self._create_reporting_invoice(partner=self.b2c_customer, tax_ids=export_tax)
+        self.assertEqual(invoice.l10n_fr_pdp_flow_10_report_type, 'transaction')
+
+        belgium = self.env.ref('base.be')
+        foreign_exempt_tax = exempt_tax.copy({
+            'country_id': belgium.id,
+            'tax_group_id': self.env['account.tax.group'].create({'name': 'BE', 'country_id': belgium.id}).id,
+        })
+        invoice = self.env['account.move'].new({
+            'move_type': 'out_invoice',
+            'invoice_line_ids': [Command.create({'name': 'Letting', 'tax_ids': foreign_exempt_tax.ids})],
+        })
+        self.assertFalse(invoice._l10n_fr_pdp_is_exempt_from_reporting())
 
     def test_b2c_invoice_without_taxes_creates_transaction_flow(self):
         invoice = self._create_reporting_invoice(
@@ -734,7 +770,8 @@ class TestPdpReportsFlowLifecycle(TestL10nFrPdpCommon):
         """OSS VAT remains on the invoice but is not reported as French VAT."""
         oss_tag = self.env.ref('l10n_eu_oss.tag_oss', raise_if_not_found=False)
         if not oss_tag:
-            oss_tag = self.env['account.account.tag'].create({'name': 'OSS'})
+            # Repartition lines require a tax tag, just like the real OSS tag.
+            oss_tag = self.env['account.account.tag'].create({'name': 'OSS', 'applicability': 'taxes'})
             self.env['ir.model.data'].create({
                 'module': 'l10n_eu_oss',
                 'name': 'tag_oss',
@@ -805,6 +842,77 @@ class TestPdpReportsFlowLifecycle(TestL10nFrPdpCommon):
         self.assertEqual(len(transactions), 0)
         self.assertEqual(invoices[0].findtext('ID'), invoice.name)
         self.assertEqual(invoices[0].findtext('CurrencyCode'), invoice.currency_id.name)
+
+    def test_b2bi_invoice_without_billing_period(self):
+        """Do not use the reporting period or payment deadline as a billing period."""
+        invoice = self._create_reporting_invoice(
+            partner=self.b2bi_customer,
+            invoice_date='2025-02-05',
+            invoice_date_due='2025-04-30',
+        )
+        flow = invoice.l10n_fr_pdp_last_flow_id
+        xml = self._build_flow_xml(flow)
+        self.assertEqual(xml.findtext('./TransactionsReport/ReportPeriod/StartDate'), '20250201')
+        self.assertEqual(xml.findtext('./TransactionsReport/ReportPeriod/EndDate'), '20250210')
+        self.assertFalse(xml.findall('./TransactionsReport/Invoice/InvoicePeriod'))
+        self.assertFalse(xml.findall('./TransactionsReport/Invoice/Line/InvoicePeriod'))
+
+    def test_b2bi_invoice_billing_periods(self):
+        """Export valid line periods and infer the header only when every product line is dated."""
+        if 'deferred_start_date' not in self.env['account.move.line']._fields:
+            self.skipTest('Deferred dates require account_accountant to be installed.')
+
+        invoice = self._create_reporting_invoice_with_lines(
+            partner=self.b2bi_customer,
+            lines=[{'price_unit': 100.0}, {'price_unit': 200.0}],
+        )
+        cases = [
+            (
+                'different_periods',
+                [('2025-01-01', '2025-03-31'), ('2025-02-01', '2025-04-30')],
+                [('20250101', '20250331'), ('20250201', '20250430')],
+                ('20250101', '20250430'),
+            ),
+            (
+                'no_dates',
+                [(False, False), (False, False)],
+                [],
+                None,
+            ),
+            (
+                'one_undated_line',
+                [('2025-01-01', '2025-03-31'), (False, False)],
+                [('20250101', '20250331')],
+                None,
+            ),
+            (
+                'same_day',
+                [('2025-02-05', '2025-02-05'), ('2025-02-05', '2025-02-05')],
+                [('20250205', '20250205'), ('20250205', '20250205')],
+                ('20250205', '20250205'),
+            ),
+        ]
+        for name, periods, expected_lines, expected_header in cases:
+            with self.subTest(name=name):
+                for line, (start_date, end_date) in zip(invoice.invoice_line_ids, periods):
+                    line.write({
+                        'deferred_start_date': start_date,
+                        'deferred_end_date': end_date,
+                    })
+                xml = self._build_flow_xml(invoice.l10n_fr_pdp_last_flow_id)
+                invoice_node = xml.find('./TransactionsReport/Invoice')
+                self.assertEqual([
+                    (period.findtext('StartDate'), period.findtext('EndDate'))
+                    for period in invoice_node.findall('./Line/InvoicePeriod')
+                ], expected_lines)
+                header = invoice_node.find('InvoicePeriod')
+                if expected_header:
+                    self.assertIsNotNone(header)
+                    self.assertEqual(
+                        (header.findtext('StartDate'), header.findtext('EndDate')), expected_header,
+                    )
+                else:
+                    self.assertIsNone(header)
 
     def test_non_eu_vendor_without_vat_uses_country_and_name_identifier(self):
         us_vendor = self.env['res.partner'].create({

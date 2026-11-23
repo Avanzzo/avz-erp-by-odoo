@@ -1617,6 +1617,10 @@ class AccountMove(models.Model):
             'ref': reconciliation_ref,
             # these are necessary for the views to change depending on the values
             'is_exchange': partial_info['is_exchange'],
+            # the invoicing users only manage the invoices and the payments, the other entries are part of the accounting
+            'can_open_move': self.env.user.has_group('account.group_account_readonly')
+                or bool(counterpart_line.move_id.origin_payment_id)
+                or counterpart_line.move_id.is_invoice(include_receipts=True),
             'amount_company_currency': formatLang(
                 self.env,
                 abs(counterpart_line.balance),
@@ -1630,6 +1634,7 @@ class AccountMove(models.Model):
         }
 
     @api.depends('move_type', 'line_ids.amount_residual')
+    @api.depends_context('uid')
     def _compute_payments_widget_reconciled_info(self):
         for move in self:
             payments_widget_vals = {
@@ -2010,7 +2015,7 @@ class AccountMove(models.Model):
         for move in self:
             move.show_invoice_vendor_bill = move.state == 'draft' and move.move_type in ('in_invoice', 'in_refund')
 
-    @api.depends('partner_id', 'invoice_source_email', 'partner_id.display_name')
+    @api.depends('partner_id', 'invoice_source_email', 'partner_id.complete_name')
     def _compute_invoice_partner_display_info(self):
         for move in self:
             vendor_display_name = move.partner_id.with_context({'lang': self.env.lang}).display_name
@@ -2080,7 +2085,7 @@ class AccountMove(models.Model):
         for move in self.filtered(lambda move: move.is_invoice()):
             move.access_url = '/my/invoices/%s' % (move.id)
 
-    @api.depends('move_type', 'partner_id', 'partner_id.lang', 'company_id')
+    @api.depends('move_type', 'partner_id', 'company_id')
     def _compute_narration(self):
         use_invoice_terms = self.env['ir.config_parameter'].sudo().get_bool('account.use_invoice_terms')
         invoice_to_update_terms = self.filtered(lambda m: use_invoice_terms and m.is_sale_document(include_receipts=True))
@@ -5943,11 +5948,17 @@ class AccountMove(models.Model):
                 skip_invoice_sync=move.move_type == 'entry',
             ).copy(default_values)
 
+        reversed_storno = {
+            reverse_line: not line.is_storno
+            for move, reverse_move in zip(self, reverse_moves)
+            if move.move_type == 'entry' and move.company_id.account_storno
+            for line, reverse_line in zip(move.line_ids, reverse_move.line_ids, strict=True)
+        }
         reverse_moves.with_context(skip_invoice_sync=cancel).write({'line_ids': [
             Command.update(line.id, {
                 'balance': -line.balance,
                 'amount_currency': -line.amount_currency,
-                **({'is_storno': not line.is_storno} if line.company_id.account_storno else {}),
+                **({'is_storno': reversed_storno[line]} if line in reversed_storno else {}),
             })
             for line in reverse_moves.line_ids
             if line.move_id.move_type == 'entry' or line.display_type == 'cogs'
@@ -5977,6 +5988,17 @@ class AccountMove(models.Model):
 
     def _is_protected_by_audit_trail(self):
         return any(move.posted_before and move.company_id.restrictive_audit_trail for move in self)
+
+    @api.model
+    def _get_active_accrual_domain(self, date):
+        """ Returns the domain of active accrual entries which is of state posted and as of `date`
+        and its reversal is not yet posted or its planned posted date is not reached yet.
+        """
+        return Domain([
+            ('state', '=', 'posted'),
+            ('date', '<=', date),
+            ('reversal_move_ids', 'not any', [('state', '!=', 'cancel'), ('date', '<=', date)]),
+        ])
 
     def _unlink_or_reverse(self, default_values_list=None):
         if not self:
@@ -6062,14 +6084,24 @@ class AccountMove(models.Model):
     def _get_cogs_lines_vals(self):
         """Prepare the COGS journal items (account.move.line) for a customer invoice: one line
         crediting the stock valuation account and one line debiting the expense account, for
-        each invoice line whose product is valued in real time.
+        each invoice line whose product is valued in real time. Lines already booked by a
+        previous call (e.g. a revaluation) are taken into account, so only the remaining delta
+        is returned. The ``cogs_origin_line_id`` context key can be set to only generate the
+        vals for that specific invoice line instead of all of them.
+
+        TODO: master: this method only ever deals with a single invoice line at a time; move it
+        to ``account.move.line`` instead of looping over ``invoice_line_ids`` here.
         """
         self.ensure_one()
         price_unit_prec = self.env['decimal.precision'].precision_get('Product Price')
         sign = -1 if self.move_type == 'out_refund' else 1
 
+        invoice_line_ids = self.invoice_line_ids
+        if invoice_line_id := self.env.context.get('cogs_origin_line_id'):
+            invoice_line_ids = self.env['account.move.line'].browse(invoice_line_id)
+
         lines_vals_list = []
-        for line in self.invoice_line_ids:
+        for line in invoice_line_ids:
             if not line._use_inventory_valuation():
                 continue
 
@@ -6088,19 +6120,28 @@ class AccountMove(models.Model):
             if self.company_currency_id.is_zero(balance) or float_is_zero(price_unit, precision_digits=price_unit_prec):
                 continue
 
+            invoice_lines_to_check = self.line_ids
+            if line_ids := self.env.context.get('cogs_invoice_line_ids'):
+                invoice_lines_to_check = self.env['account.move.line'].browse(line_ids)
+
+            cogs_lines = invoice_lines_to_check.filtered(lambda l: l.display_type == 'cogs' and l.cogs_origin_id == line)
+            existing_balance = sum(cogs_lines.filtered(lambda l: l.account_id == stock_account).mapped('balance'))
+
             common_vals = self._get_cogs_common_vals(line)
-            lines_vals_list.append({
-                **common_vals,
-                'price_unit': price_unit,
-                'balance': -balance,
-                'account_id': stock_account.id,
-            })
-            lines_vals_list.append({
-                **common_vals,
-                'price_unit': -price_unit,
-                'balance': balance,
-                'account_id': expense_account.id,
-            })
+            stock_balance = -balance - existing_balance
+            expense_balance = -stock_balance
+            if not self.company_currency_id.is_zero(stock_balance):
+                lines_vals_list += [{
+                    **common_vals,
+                    'price_unit': price_unit,
+                    'balance': stock_balance,
+                    'account_id': stock_account.id,
+                }, {
+                    **common_vals,
+                    'price_unit': -price_unit,
+                    'balance': expense_balance,
+                    'account_id': expense_account.id,
+                }]
         return lines_vals_list
 
     def _get_price_difference_lines_vals(self):
@@ -6659,6 +6700,8 @@ class AccountMove(models.Model):
         for line in self.invoice_line_ids:
             if line.display_type in ('line_section', 'line_note'):
                 continue
+            if not line.product_id and line.account_id:
+                line.account_id = line.move_id.fiscal_position_id.map_account(line.account_id)
             if not line.price_unit:
                 lines_to_recompute |= line
                 continue

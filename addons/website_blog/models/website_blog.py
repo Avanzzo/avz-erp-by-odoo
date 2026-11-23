@@ -35,7 +35,10 @@ class BlogBlog(models.Model):
     name = fields.Char('Blog Name', required=True, translate=True)
     subtitle = fields.Char('Blog Subtitle', translate=True)
     active = fields.Boolean('Active', default=True)
-    content = fields.Html('Content', translate=html_translate, sanitize=False)
+    content = fields.Html(
+        'Content', translate=html_translate,
+        sanitize_overridable=True,
+        sanitize_attributes=False, sanitize_form=False)
     blog_post_ids = fields.One2many('blog.post', 'blog_id', 'Blog Posts')
     blog_post_count = fields.Integer("Posts", compute='_compute_blog_post_count')
 
@@ -109,7 +112,7 @@ class BlogBlog(models.Model):
     def _prepare_jsonld_vals(self):
         self.ensure_one()
         base_url = self.get_base_url()
-        blog_url = f'{base_url}{self.website_url}'
+        blog_url = self._get_localized_absolute_url()
         vals = {
             '@type': 'Blog',
             '@id': f'{blog_url}/#blog',
@@ -199,7 +202,10 @@ class BlogPost(models.Model):
     recommended_next_post_id = fields.Many2one('blog.post', string="Recommended Next Post",
         help="Next blog post that will be shown as the next article to users at the bottom of the blog post.")
     tag_ids = fields.Many2many('blog.tag', string='Tags')
-    content = fields.Html('Content', default=_default_content, translate=html_translate, sanitize=False)
+    content = fields.Html(
+        'Content', default=_default_content, translate=html_translate,
+        sanitize_overridable=True,
+        sanitize_attributes=False, sanitize_form=False)
     teaser = fields.Text('Teaser', compute='_compute_teaser', inverse='_set_teaser', translate=True)
     teaser_manual = fields.Text(string='Teaser Content', translate=True)
 
@@ -388,7 +394,8 @@ class BlogPost(models.Model):
     def _prepare_jsonld_vals(self):
         self.ensure_one()
         base_url = self.get_base_url()
-        post_url = f'{base_url}{self.website_url}'
+        post_url = self._get_localized_absolute_url()
+        blog_url = self.blog_id._get_localized_absolute_url()
         vals = {
             '@type': 'BlogPosting',
             '@id': f'{post_url}/#blogpost',
@@ -396,7 +403,7 @@ class BlogPost(models.Model):
             'url': post_url,
             'dateModified': self._to_iso_datetime(self.write_date),
             'publisher': {'@id': f'{base_url}/#organization'},
-            'isPartOf': {'@id': f'{base_url}{self.blog_id.website_url}/#blog'},
+            'isPartOf': {'@id': f'{blog_url}/#blog'},
         }
         if self.published_date:
             vals['datePublished'] = self._to_iso_datetime(self.published_date)

@@ -337,6 +337,10 @@ class HrEmployee(models.Model):
                 'employee_id': self.id,
                 'check_in': action_date,
             }
+            # the time type of the company of the employee, not the one of the current company
+            # (e.g. the kiosk of another company)
+            if work_entry_type := self.company_id.sudo().attendance_work_entry_type_id:
+                vals['work_entry_type_id'] = work_entry_type.id
             if geo_information:
                 vals.update({'in_%s' % key: geo_information[key] for key in geo_information})
 
@@ -395,13 +399,25 @@ class HrEmployee(models.Model):
         now_tz = now.replace(tzinfo=datetime.UTC).astimezone(tz)
         month_start = now_tz.replace(day=1, hour=0, minute=0, second=0, microsecond=0).astimezone(datetime.UTC).replace(tzinfo=None)
         month_end = (now_tz + relativedelta(months=1)).replace(day=1, hour=0, minute=0, second=0, microsecond=0).astimezone(datetime.UTC).replace(tzinfo=None)
+        # Same rights as hr.attendance._compute_can_edit and the access rules: the own attendances can be created and
+        # edited with the "Self Attendance Edit" right, but only deleted by their attendance manager or an officer
+        user = self.env.user
+        can_manage = user.has_group('hr_attendance.group_hr_attendance_user') \
+            or (user.has_group('hr_attendance.group_hr_attendance_officer') and self.attendance_manager_id == user)
+        can_edit = can_manage or (user.has_group('hr_attendance.group_hr_attendance_own') and self.user_id == user)
         return {
             "type": "ir.actions.act_window",
             "name": _("Attendances This Month"),
             "res_model": "hr.attendance",
             "views": [[False, "list"], [False, "form"]],
             "domain": [('employee_id', '=', self.id), ('check_in', '>=', month_start), ('check_in', '<', month_end)],
-            "context": {"group_by": ["check_in:week"], "default_employee_id": self.id},
+            "context": {
+                "group_by": ["check_in:week"],
+                "default_employee_id": self.id,
+                "create": can_edit,
+                "edit": can_edit,
+                "delete": can_manage,
+            },
         }
 
     @api.depends("user_id.im_status", "attendance_state")

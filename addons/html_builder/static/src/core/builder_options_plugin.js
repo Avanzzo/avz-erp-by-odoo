@@ -267,6 +267,9 @@ export class BuilderOptionsPlugin extends Plugin {
         if (!editableOnly) {
             return true;
         }
+        if (el.matches("[data-oe-field][data-oe-many2one-model] *")) {
+            return false;
+        }
         // `o_editable_media` bypasses the `o_not_editable` class.
         if (el.matches(".o_editable_media")) {
             return shouldEditableMediaBeEditable(el);
@@ -773,7 +776,7 @@ export class BuilderOptionsPlugin extends Plugin {
         return {
             template: node.getAttribute("template"),
             selector: node.getAttribute("selector"),
-            exclude: node.getAttribute("exclude"),
+            exclude: node.getAttribute("exclude") || "",
             applyTo: node.getAttribute("applyTo") || undefined,
             title: node.getAttribute("title"),
             editableOnly: node.getAttribute("editableOnly") !== "false",

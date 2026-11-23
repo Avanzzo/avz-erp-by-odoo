@@ -140,7 +140,9 @@ class AccountTax(models.Model):
     tax_group_id = fields.Many2one(
         comodel_name='account.tax.group',
         string="Tax Group",
-        compute='_compute_tax_group_id', readonly=False, store=True,
+        compute='_compute_tax_group_id',
+        inverse='_inverse_tax_group_id',
+        readonly=False, store=True,
         required=True, precompute=True,
         domain="[('country_id', 'in', (country_id, False))]")
     # Technical field to make the 'tax_exigibility' field invisible if the same named field is set to false in 'res.company' model
@@ -249,6 +251,14 @@ class AccountTax(models.Model):
             if record.tax_group_id.country_id and record.tax_group_id.country_id != record.country_id:
                 raise ValidationError(_("The tax group must have the same country_id as the tax using it."))
 
+    @api.constrains('type_tax_use', 'company_id')
+    def _check_default_taxes(self):
+        for tax in self:
+            if tax.company_id.account_sale_tax_id == tax and tax.type_tax_use != 'sale':
+                raise ValidationError(_("Default Sale Tax must be a tax with 'Sales' type."))
+            if tax.company_id.account_purchase_tax_id == tax and tax.type_tax_use != 'purchase':
+                raise ValidationError(_("Default Purchase Tax must be a tax with 'Purchases' type."))
+
     @api.model
     @api.readonly
     def name_search(self, name='', domain=None, operator='ilike', limit=100):
@@ -273,18 +283,19 @@ class AccountTax(models.Model):
     @api.depends('company_id')
     def _compute_country_id(self):
         for tax in self:
-            tax.country_id = tax.company_id.account_fiscal_country_id or tax.company_id.country_id or tax.country_id
+            tax.country_id = tax.tax_group_id.country_id or tax.company_id.account_fiscal_country_id or tax.company_id.country_id or tax.country_id
 
     @api.depends('company_id', 'country_id')
     def _compute_tax_group_id(self):
         by_country_company = defaultdict(self.browse)
         for tax in self:
+            country = tax.country_id or tax.company_id.account_fiscal_country_id or tax.company_id.country_id
             if (
                 not tax.tax_group_id
-                or tax.tax_group_id.country_id != tax.country_id
+                or tax.tax_group_id.country_id != country
                 or tax.tax_group_id.company_id != tax.company_id
             ):
-                by_country_company[(tax.country_id, tax.company_id)] += tax
+                by_country_company[country, tax.company_id] += tax
         for (country, company), taxes in by_country_company.items():
             taxes.tax_group_id = self.env['account.tax.group'].search([
                 *self.env['account.tax.group']._check_company_domain(company),
@@ -293,6 +304,11 @@ class AccountTax(models.Model):
                 *self.env['account.tax.group']._check_company_domain(company),
                 ('country_id', '=', False),
             ], limit=1)
+
+    def _inverse_tax_group_id(self):
+        for tax in self:
+            if tax.tax_group_id.country_id:
+                tax.country_id = tax.tax_group_id.country_id
 
     @api.depends('price_include_override')
     def _compute_price_include(self):

@@ -150,6 +150,18 @@ class TestLangUrl(TestLangUrlCommon):
                 r = self.url_open('/website/translations', params={'lang': lang})
                 self.assertEqual(get_session_info(url)['translation_hash'], r.json()['hash'])
 
+    def test_09_localized_url(self):
+        page = self.env.ref('website.contactus_page')
+        base_url = self.website.get_base_url()
+        with MockRequest(self.env, website=self.website) as request:
+            self.assertEqual(page.with_env(request.env)._get_localized_absolute_url(), f'{base_url}/contactus')
+        with MockRequest(self.env, website=self.website, context={'lang': 'fr_FR'}) as request:
+            self.assertEqual(page.with_env(request.env)._get_localized_absolute_url(), f'{base_url}/fr/contactus')
+        # The current website gives the domain, not the record's website
+        website_2 = self.env['website'].create({'name': 'Website 2', 'domain': 'https://site2.example'})
+        with MockRequest(self.env, website=website_2) as request:
+            self.assertEqual(page.with_env(request.env)._get_localized_absolute_url(), 'https://site2.example/contactus')
+
 
 @tagged('-at_install', 'post_install')
 class TestLangRedirectBots(TestLangUrlCommon):
@@ -314,6 +326,12 @@ class TestTranslateUrl(TestLangUrl):
         self.assertEqual(r.history[0].status_code, 303)
         self.assertEqual(r.status_code, 200)
         self.assertEqual(r.url, self.base + '/fr' + name_homepage_url_fr)
+
+    def test_update_field_translations_empty_url(self):
+        """ Test that clearing a translated page URL falls back to the source URL. """
+        self.page.update_field_translations('url', {'fr_FR': None})
+
+        self.assertEqual(self.page.with_context(lang='fr_FR').url, self.page.url)
 
     def test_translate_url_exists_in_other_language(self):
         # It should be possible to translate the url of a page with a url that

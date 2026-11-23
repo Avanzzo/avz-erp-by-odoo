@@ -555,7 +555,7 @@ class CustomerPortal(Controller):
         # Parse form data into address values, and extract incompatible data as extra form data.
         address_values, extra_form_data = self._parse_form_data(form_data)
 
-        if verify_address_values:
+        if partner_sudo or not partner_sudo.env.context.get('partial_address_before_checkout'):
             # Validate the address values and highlights the problems in the form, if any.
             invalid_fields, missing_fields, error_messages = self._validate_address_values(
                 address_values,
@@ -743,16 +743,19 @@ class CustomerPortal(Controller):
             def get_commercial_field_error_msg(field_description):
                 if partner_sudo.commercial_partner_id.is_company:
                     return self.env._(
-                        "The %(field_description)s is managed on your company account."
+                        "The %(field_description)s is managed on your company account.",
+                        field_description=field_description,
                     )
                 elif current_partner != partner_sudo:
                     return self.env._(
-                        "The %(field_description)s is managed on your main account address."
+                        "The %(field_description)s is managed on your main account address.",
+                        field_description=field_description,
                     )
                 else:
                     return self.env._(
                         "Changing %(field_description)s is not allowed once document(s) have been"
-                        " issued for your account. Please contact us directly for this operation."
+                        " issued for your account. Please contact us directly for this operation.",
+                        field_description=field_description,
                     )
 
             # Prevent changing commercial fields on sub-addresses, as they are expected to match

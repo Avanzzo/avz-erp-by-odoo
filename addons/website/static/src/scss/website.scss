@@ -2945,6 +2945,13 @@ input[value*="data-oe-translation-source-sha"] {
         transform: none !important;
     }
 }
+// Measure untransformed highlights while preserving Safari's containing block.
+.o_wanim_no_transform .o_animate {
+    &.o_animating, &.o_animate_in_dropdown {
+        transform: none !important;
+        will-change: transform !important;
+    }
+}
 .o_animate_preview {
     visibility: visible;
 }
@@ -3812,6 +3819,14 @@ input[value*="data-oe-translation-source-sha"] {
                     line-height: $-size + $i;
                 }
             }
+        }
+    }
+    // Draw the focus ring on the icon instead of the link so that it follows
+    // the icon layout.
+    a:focus-visible:has(.oi) {
+        outline: none;
+        .oi {
+            outline: $focus-ring-width solid $focus-ring-color;
         }
     }
 
